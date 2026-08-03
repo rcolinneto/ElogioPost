@@ -1,9 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import type { Testimonial } from "@/lib/types";
 import TestimonialCard from "@/components/TestimonialCard";
 import { approveTestimonial, rejectTestimonial } from "./actions";
+import { generateCaption } from "./captionActions";
 
 type Props = {
   testimonial: Testimonial & { screenshotUrl: string | null };
@@ -12,6 +13,29 @@ type Props = {
 
 export default function SubmissionItem({ testimonial, businessName }: Props) {
   const [pending, startTransition] = useTransition();
+
+  const [caption, setCaption] = useState(testimonial.caption ?? "");
+  const [generatingCaption, setGeneratingCaption] = useState(false);
+  const [captionError, setCaptionError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function handleGenerateCaption() {
+    setGeneratingCaption(true);
+    setCaptionError("");
+    const result = await generateCaption(testimonial.id);
+    if (result.error) {
+      setCaptionError(result.error);
+    } else if (result.caption) {
+      setCaption(result.caption);
+    }
+    setGeneratingCaption(false);
+  }
+
+  async function handleCopyCaption() {
+    await navigator.clipboard.writeText(caption);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <div className="submission">
@@ -106,6 +130,54 @@ export default function SubmissionItem({ testimonial, businessName }: Props) {
             <a className="btn-download" href="/api/qrcode?formato=carrossel" download>
               ⬇ Slide 2 — convite
             </a>
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            <label htmlFor={`caption-${testimonial.id}`}>Legenda sugerida (IA)</label>
+            {caption ? (
+              <>
+                <textarea
+                  id={`caption-${testimonial.id}`}
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  rows={4}
+                />
+                {captionError && (
+                  <div className="error-msg" style={{ marginTop: 8 }}>
+                    {captionError}
+                  </div>
+                )}
+                <div className="actions" style={{ marginTop: 8 }}>
+                  <button type="button" className="btn-download" onClick={handleCopyCaption}>
+                    {copied ? "Copiado!" : "⬇ Copiar legenda"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-download"
+                    onClick={handleGenerateCaption}
+                    disabled={generatingCaption}
+                  >
+                    {generatingCaption ? "Gerando..." : "↻ Gerar de novo"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {captionError && (
+                  <div className="error-msg" style={{ marginBottom: 8 }}>
+                    {captionError}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={handleGenerateCaption}
+                  disabled={generatingCaption}
+                >
+                  {generatingCaption ? "Gerando..." : "✨ Gerar legenda com IA"}
+                </button>
+              </>
+            )}
           </div>
         </>
       )}

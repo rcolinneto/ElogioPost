@@ -23,6 +23,7 @@ export type Testimonial = {
   body: string;
   screenshot_path: string | null;
   status: TestimonialStatus;
+  caption: string | null;
   created_at: string;
   reviewed_at: string | null;
 };
