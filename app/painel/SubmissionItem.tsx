@@ -69,13 +69,22 @@ export default function SubmissionItem({ testimonial, businessName }: Props) {
       {testimonial.status === "approved" && (
         <>
           <TestimonialCard testimonial={testimonial} businessName={businessName} />
-          <a
-            className="btn-download"
-            href={`/api/testimonials/${testimonial.id}/card`}
-            download
-          >
-            ⬇ Baixar imagem pra postar
-          </a>
+          <div className="actions">
+            <a
+              className="btn-download"
+              href={`/api/testimonials/${testimonial.id}/card?formato=feed`}
+              download
+            >
+              ⬇ Feed (quadrado)
+            </a>
+            <a
+              className="btn-download"
+              href={`/api/testimonials/${testimonial.id}/card?formato=stories`}
+              download
+            >
+              ⬇ Stories (vertical)
+            </a>
+          </div>
         </>
       )}
     </div>

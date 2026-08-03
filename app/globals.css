@@ -215,7 +215,8 @@ button.primary:disabled {
   gap: 8px;
   margin-top: 10px;
 }
-.actions button {
+.actions button,
+.actions a {
   flex: 1;
   padding: 8px;
   border-radius: 7px;

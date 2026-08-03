@@ -20,6 +20,9 @@ export default function Home() {
           <Link href="/login">
             <button className="primary">Entrar</button>
           </Link>
+          <p style={{ fontSize: 13, marginTop: 14, textAlign: "center" }}>
+            Ainda não tem conta? <Link href="/cadastro">Criar conta</Link>
+          </p>
         </div>
       </main>
     </>

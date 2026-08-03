@@ -1,27 +1,34 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setStatus("sending");
+    setErrorMsg("");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      password,
     });
 
-    setStatus(error ? "error" : "sent");
+    if (error) {
+      setStatus("error");
+      setErrorMsg("E-mail ou senha incorretos.");
+      return;
+    }
+
+    // navegação completa pra garantir que o painel já leia a sessão nova
+    window.location.assign("/painel");
   }
 
   return (
@@ -33,37 +40,43 @@ export default function LoginPage() {
       <main className="app-main">
         <div className="card-panel">
           <h2>Entrar</h2>
-          {status === "sent" ? (
-            <div className="success-msg">
-              Te mandamos um link de acesso pro e-mail <strong>{email}</strong>.
-              Abre a caixa de entrada e clica no link pra entrar. 🎉
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="email">Seu e-mail</label>
-              <input
-                id="email"
-                type="email"
-                required
-                placeholder="voce@seunegocio.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {status === "error" && (
-                <div className="error-msg" style={{ marginTop: 14 }}>
-                  Não deu pra enviar o link agora. Confere o e-mail e tenta de
-                  novo.
-                </div>
-              )}
-              <button
-                className="primary"
-                type="submit"
-                disabled={status === "sending"}
-              >
-                {status === "sending" ? "Enviando..." : "Receber link de acesso"}
-              </button>
-            </form>
-          )}
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="email">Seu e-mail</label>
+            <input
+              id="email"
+              type="email"
+              required
+              placeholder="voce@seunegocio.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <label htmlFor="password">Sua senha</label>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {errorMsg && (
+              <div className="error-msg" style={{ marginTop: 14 }}>
+                {errorMsg}
+              </div>
+            )}
+
+            <button className="primary" type="submit" disabled={status === "sending"}>
+              {status === "sending" ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+
+          <p style={{ fontSize: 13, marginTop: 16 }}>
+            <Link href="/esqueci-senha">Esqueci minha senha</Link>
+          </p>
+          <p style={{ fontSize: 13, marginTop: 6, color: "var(--muted)" }}>
+            Não tem conta ainda? <Link href="/cadastro">Criar conta</Link>
+          </p>
         </div>
       </main>
     </>
