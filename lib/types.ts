@@ -8,6 +8,7 @@ export type Business = {
   plan: string;
   subscription_status: string;
   trial_ends_at: string;
+  whatsapp_template: string;
   created_at: string;
   updated_at: string;
 };

@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { slugify, randomSuffix } from "@/lib/slug";
+import { slugify } from "@/lib/slug";
+import { RESERVED_SLUGS } from "@/lib/reserved-slugs";
 
 export type OnboardingState = { error: string | null };
 
@@ -25,6 +26,12 @@ export async function createBusiness(
 
   const baseSlug = slugify(name) || "negocio";
   let slug = baseSlug;
+  let nextNumber = 2;
+
+  if (RESERVED_SLUGS.has(slug)) {
+    slug = `${baseSlug}-${nextNumber}`;
+    nextNumber += 1;
+  }
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const { error } = await supabase.from("businesses").insert({
@@ -39,7 +46,8 @@ export async function createBusiness(
 
     if (error.code === "23505") {
       if (error.message.includes("slug")) {
-        slug = `${baseSlug}-${randomSuffix()}`;
+        slug = `${baseSlug}-${nextNumber}`;
+        nextNumber += 1;
         continue;
       }
       // conflito em owner_id: o negócio já existe, só segue pro painel

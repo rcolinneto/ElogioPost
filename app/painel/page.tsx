@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Testimonial } from "@/lib/types";
 import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
+import RequestReviewPanel from "./RequestReviewPanel";
 
 export default async function PainelPage() {
   const business = await getCurrentBusiness();
@@ -33,7 +34,7 @@ export default async function PainelPage() {
 
   const host = headersList.get("host");
   const protocol = host?.startsWith("localhost") ? "http" : "https";
-  const collectionUrl = `${protocol}://${host}/c/${business.slug}`;
+  const collectionUrl = `${protocol}://${host}/${business.slug}/review`;
 
   return (
     <>
@@ -48,6 +49,13 @@ export default async function PainelPage() {
             Manda esse link pro seu cliente no WhatsApp depois de atender ele.
           </p>
           <CopyLinkButton url={collectionUrl} />
+        </div>
+        <div className="card-panel">
+          <RequestReviewPanel
+            businessName={business.name}
+            reviewUrl={collectionUrl}
+            template={business.whatsapp_template}
+          />
         </div>
         <div className="card-panel">
           <ApprovalPanel testimonials={withUrls} businessName={business.name} />

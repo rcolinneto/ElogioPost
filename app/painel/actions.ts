@@ -19,3 +19,21 @@ export async function approveTestimonial(id: string) {
 export async function rejectTestimonial(id: string) {
   await setStatus(id, "rejected");
 }
+
+export async function updateWhatsappTemplate(template: string) {
+  const trimmed = template.trim();
+  if (!trimmed) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("businesses")
+    .update({ whatsapp_template: trimmed })
+    .eq("owner_id", user.id);
+
+  revalidatePath("/painel");
+}
