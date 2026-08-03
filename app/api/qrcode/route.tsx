@@ -2,9 +2,10 @@ import QRCode from "qrcode";
 import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
-import { BRAND_GRADIENT } from "@/lib/brand";
+import { QrCtaCard } from "@/lib/qrCard";
 
-const CARD_SIZE = 1200;
+const PLAQUINHA_SIZE = 1200;
+const CARROSSEL_SIZE = 1080;
 
 export async function GET(request: NextRequest) {
   const business = await getCurrentBusiness();
@@ -12,8 +13,9 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Não autorizado.", { status: 401 });
   }
 
+  const formatoParam = request.nextUrl.searchParams.get("formato");
   const formato =
-    request.nextUrl.searchParams.get("formato") === "puro" ? "puro" : "plaquinha";
+    formatoParam === "puro" || formatoParam === "carrossel" ? formatoParam : "plaquinha";
 
   const host = request.headers.get("host");
   const protocol = host?.startsWith("localhost") ? "http" : "https";
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
   if (formato === "puro") {
     const buffer = await QRCode.toBuffer(reviewUrl, {
       type: "png",
-      width: CARD_SIZE,
+      width: PLAQUINHA_SIZE,
       margin: 2,
       color: { dark: "#000000ff", light: "#ffffffff" },
     });
@@ -36,68 +38,35 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  const size = formato === "carrossel" ? CARROSSEL_SIZE : PLAQUINHA_SIZE;
+  const headline = formato === "carrossel" ? business.carousel_cta_text : business.qr_headline;
+  const filename =
+    formato === "carrossel"
+      ? `carrossel-slide2-${business.slug}.png`
+      : `plaquinha-${business.slug}.png`;
+
   const qrDataUrl = await QRCode.toDataURL(reviewUrl, {
-    width: 620,
+    width: Math.round(size * 0.52),
     margin: 1,
     color: { dark: "#000000ff", light: "#ffffffff" },
   });
 
   return new ImageResponse(
     (
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: 90,
-          background: BRAND_GRADIENT,
-          color: "white",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            width: "100%",
-            fontSize: 56,
-            fontWeight: 700,
-            lineHeight: 1.3,
-          }}
-        >
-          {business.qr_headline}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            marginTop: 50,
-            background: "white",
-            padding: 32,
-            borderRadius: 24,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
-          <img src={qrDataUrl} alt="" width={500} height={500} style={{ display: "flex" }} />
-        </div>
-
-        <div style={{ display: "flex", fontSize: 28, opacity: 0.9, marginTop: 40 }}>
-          aponte a câmera do celular pro QR code
-        </div>
-
-        <div style={{ display: "flex", fontSize: 40, fontWeight: 700, marginTop: 60 }}>
-          {business.name}
-        </div>
-      </div>
+      <QrCtaCard
+        width={size}
+        height={size}
+        headline={headline}
+        qrDataUrl={qrDataUrl}
+        businessName={business.name}
+        qrSize={Math.round(size * 0.42)}
+      />
     ),
     {
-      width: CARD_SIZE,
-      height: CARD_SIZE,
+      width: size,
+      height: size,
       headers: {
-        "Content-Disposition": `attachment; filename="plaquinha-${business.slug}.png"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store",
       },
     },

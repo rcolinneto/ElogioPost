@@ -75,14 +75,36 @@ export default function SubmissionItem({ testimonial, businessName }: Props) {
               href={`/api/testimonials/${testimonial.id}/card?formato=feed`}
               download
             >
-              ⬇ Feed (quadrado)
+              ⬇ Feed
             </a>
             <a
               className="btn-download"
               href={`/api/testimonials/${testimonial.id}/card?formato=stories`}
               download
             >
-              ⬇ Stories (vertical)
+              ⬇ Stories
+            </a>
+            <a
+              className="btn-download"
+              href={`/api/testimonials/${testimonial.id}/card?formato=google`}
+              download
+            >
+              ⬇ Google
+            </a>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12, marginBottom: 4 }}>
+            Carrossel pro Instagram (baixe os 2 slides):
+          </p>
+          <div className="actions">
+            <a
+              className="btn-download"
+              href={`/api/testimonials/${testimonial.id}/card?formato=feed`}
+              download
+            >
+              ⬇ Slide 1 — depoimento
+            </a>
+            <a className="btn-download" href="/api/qrcode?formato=carrossel" download>
+              ⬇ Slide 2 — convite
             </a>
           </div>
         </>

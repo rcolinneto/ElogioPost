@@ -61,6 +61,7 @@ export default async function PainelPage() {
               pendingTestimonials={pendingWithUrls}
               businessId={business.id}
               businessName={business.name}
+              carouselCtaText={business.carousel_cta_text}
             />
           }
           pedir={

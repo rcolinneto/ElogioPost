@@ -7,20 +7,27 @@ import { BRAND_GRADIENT } from "@/lib/brand";
 const SIZES = {
   feed: { width: 1080, height: 1080 },
   stories: { width: 1080, height: 1920 },
+  // Google Business Profile: 1200x900 (4:3), mas Google/Maps podem cortar as
+  // bordas — por isso o conteúdo fica confinado numa coluna central de 900,
+  // igual à altura, deixando 150px de sangria de cada lado.
+  google: { width: 1200, height: 900 },
 } as const;
 
 type Format = keyof typeof SIZES;
+
+function parseFormat(value: string | null): Format {
+  if (value === "stories" || value === "google") return value;
+  return "feed";
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const format: Format =
-    request.nextUrl.searchParams.get("formato") === "stories"
-      ? "stories"
-      : "feed";
+  const format = parseFormat(request.nextUrl.searchParams.get("formato"));
   const { width, height } = SIZES[format];
+  const contentWidth = format === "google" ? 900 : "100%";
 
   const business = await getCurrentBusiness();
   if (!business) {
@@ -56,6 +63,7 @@ export async function GET(
         style={{
           position: "relative",
           display: "flex",
+          justifyContent: format === "google" ? "center" : "flex-start",
           width: "100%",
           height: "100%",
           fontFamily: "sans-serif",
@@ -155,9 +163,9 @@ export async function GET(
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
-              width: "100%",
+              width: contentWidth,
               height: "100%",
-              padding: 80,
+              padding: format === "google" ? "60px 0" : 80,
             }}
           >
             <div style={{ display: "flex", fontSize: 130, opacity: 0.6, lineHeight: 1 }}>

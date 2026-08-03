@@ -4,11 +4,13 @@ import { useState } from "react";
 import type { Testimonial } from "@/lib/types";
 import SubmissionItem from "./SubmissionItem";
 import ApprovedLibrary from "./ApprovedLibrary";
+import CarouselCtaEditor from "./CarouselCtaEditor";
 
 type Props = {
   pendingTestimonials: (Testimonial & { screenshotUrl: string | null })[];
   businessId: string;
   businessName: string;
+  carouselCtaText: string;
 };
 
 type Tab = "pendentes" | "aprovados";
@@ -17,6 +19,7 @@ export default function ApprovalPanel({
   pendingTestimonials,
   businessId,
   businessName,
+  carouselCtaText,
 }: Props) {
   const [tab, setTab] = useState<Tab>("pendentes");
 
@@ -47,7 +50,10 @@ export default function ApprovalPanel({
         ))}
 
       {tab === "aprovados" && (
-        <ApprovedLibrary businessId={businessId} businessName={businessName} />
+        <>
+          <CarouselCtaEditor text={carouselCtaText} />
+          <ApprovedLibrary businessId={businessId} businessName={businessName} />
+        </>
       )}
     </>
   );

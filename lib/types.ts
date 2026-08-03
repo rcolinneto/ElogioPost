@@ -10,6 +10,7 @@ export type Business = {
   trial_ends_at: string;
   whatsapp_template: string;
   qr_headline: string;
+  carousel_cta_text: string;
   created_at: string;
   updated_at: string;
 };

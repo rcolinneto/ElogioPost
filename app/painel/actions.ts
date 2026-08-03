@@ -20,7 +20,10 @@ export async function rejectTestimonial(id: string) {
   await setStatus(id, "rejected");
 }
 
-async function updateOwnBusinessField(field: "whatsapp_template" | "qr_headline", value: string) {
+async function updateOwnBusinessField(
+  field: "whatsapp_template" | "qr_headline" | "carousel_cta_text",
+  value: string,
+) {
   const trimmed = value.trim();
   if (!trimmed) return;
 
@@ -44,4 +47,8 @@ export async function updateWhatsappTemplate(template: string) {
 
 export async function updateQrHeadline(headline: string) {
   await updateOwnBusinessField("qr_headline", headline);
+}
+
+export async function updateCarouselCta(text: string) {
+  await updateOwnBusinessField("carousel_cta_text", text);
 }
