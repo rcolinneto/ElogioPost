@@ -14,17 +14,20 @@ export default async function PainelPage() {
 
   const supabase = await createClient();
 
+  // Só pendentes são carregados aqui (fila de trabalho, sempre pequena).
+  // Aprovados vira uma biblioteca pesquisável, buscada sob demanda pelo
+  // próprio ApprovedLibrary (busca/filtro/paginação client-side).
   const [{ data: testimonials }, headersList] = await Promise.all([
     supabase
       .from("testimonials")
       .select("*")
       .eq("business_id", business.id)
-      .neq("status", "rejected")
+      .eq("status", "pending")
       .order("created_at", { ascending: false }),
     headers(),
   ]);
 
-  const withUrls = await Promise.all(
+  const pendingWithUrls = await Promise.all(
     (testimonials ?? []).map(async (t: Testimonial) => {
       if (!t.screenshot_path) return { ...t, screenshotUrl: null };
       const { data } = await supabase.storage
@@ -54,7 +57,11 @@ export default async function PainelPage() {
         </div>
         <PainelTabs
           depoimentos={
-            <ApprovalPanel testimonials={withUrls} businessName={business.name} />
+            <ApprovalPanel
+              pendingTestimonials={pendingWithUrls}
+              businessId={business.id}
+              businessName={business.name}
+            />
           }
           pedir={
             <RequestReviewPanel
