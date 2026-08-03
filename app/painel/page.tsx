@@ -6,6 +6,7 @@ import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
 import RequestReviewPanel from "./RequestReviewPanel";
 import QrCodePanel from "./QrCodePanel";
+import PainelTabs from "./PainelTabs";
 
 export default async function PainelPage() {
   const business = await getCurrentBusiness();
@@ -51,19 +52,19 @@ export default async function PainelPage() {
           </p>
           <CopyLinkButton url={collectionUrl} />
         </div>
-        <div className="card-panel">
-          <RequestReviewPanel
-            businessName={business.name}
-            reviewUrl={collectionUrl}
-            template={business.whatsapp_template}
-          />
-        </div>
-        <div className="card-panel">
-          <QrCodePanel headline={business.qr_headline} />
-        </div>
-        <div className="card-panel">
-          <ApprovalPanel testimonials={withUrls} businessName={business.name} />
-        </div>
+        <PainelTabs
+          depoimentos={
+            <ApprovalPanel testimonials={withUrls} businessName={business.name} />
+          }
+          pedir={
+            <RequestReviewPanel
+              businessName={business.name}
+              reviewUrl={collectionUrl}
+              template={business.whatsapp_template}
+            />
+          }
+          qrcode={<QrCodePanel headline={business.qr_headline} />}
+        />
       </main>
     </>
   );

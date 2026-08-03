@@ -24,12 +24,6 @@ export default function QrCodePanel({ headline }: { headline: string }) {
 
   return (
     <>
-      <h2>QR Code pra divulgar</h2>
-      <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 0 }}>
-        Imprime essa plaquinha e deixa no balcão — o cliente escaneia e cai
-        direto no seu link de depoimento.
-      </p>
-
       <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
         <img

@@ -52,12 +52,6 @@ export default function RequestReviewPanel({
 
   return (
     <>
-      <h2>Pedir depoimento pro cliente</h2>
-      <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 0 }}>
-        Coloca o nome do cliente e a gente monta a mensagem pronta pra você
-        mandar no WhatsApp.
-      </p>
-
       <form onSubmit={handleGenerate}>
         <label htmlFor="clientName">Nome do cliente</label>
         <input
