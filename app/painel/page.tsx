@@ -5,6 +5,7 @@ import type { Testimonial } from "@/lib/types";
 import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
 import RequestReviewPanel from "./RequestReviewPanel";
+import QrCodePanel from "./QrCodePanel";
 
 export default async function PainelPage() {
   const business = await getCurrentBusiness();
@@ -56,6 +57,9 @@ export default async function PainelPage() {
             reviewUrl={collectionUrl}
             template={business.whatsapp_template}
           />
+        </div>
+        <div className="card-panel">
+          <QrCodePanel headline={business.qr_headline} />
         </div>
         <div className="card-panel">
           <ApprovalPanel testimonials={withUrls} businessName={business.name} />

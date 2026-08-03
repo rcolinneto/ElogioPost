@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
+import { BRAND_GRADIENT } from "@/lib/brand";
 
 const SIZES = {
   feed: { width: 1080, height: 1080 },
@@ -84,7 +85,7 @@ export async function GET(
               position: "absolute",
               inset: 0,
               display: "flex",
-              background: "linear-gradient(150deg, #7c3aed, #ec4899)",
+              background: BRAND_GRADIENT,
             }}
           />
         )}

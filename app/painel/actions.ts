@@ -20,8 +20,8 @@ export async function rejectTestimonial(id: string) {
   await setStatus(id, "rejected");
 }
 
-export async function updateWhatsappTemplate(template: string) {
-  const trimmed = template.trim();
+async function updateOwnBusinessField(field: "whatsapp_template" | "qr_headline", value: string) {
+  const trimmed = value.trim();
   if (!trimmed) return;
 
   const supabase = await createClient();
@@ -32,8 +32,16 @@ export async function updateWhatsappTemplate(template: string) {
 
   await supabase
     .from("businesses")
-    .update({ whatsapp_template: trimmed })
+    .update({ [field]: trimmed })
     .eq("owner_id", user.id);
 
   revalidatePath("/painel");
+}
+
+export async function updateWhatsappTemplate(template: string) {
+  await updateOwnBusinessField("whatsapp_template", template);
+}
+
+export async function updateQrHeadline(headline: string) {
+  await updateOwnBusinessField("qr_headline", headline);
 }
