@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { generateCaption } from "./captionActions";
+import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 
 async function setStatus(id: string, status: "approved" | "rejected") {
   const supabase = await createClient();
@@ -29,7 +30,7 @@ export async function rejectTestimonial(id: string) {
 }
 
 async function updateOwnBusinessField(
-  field: "whatsapp_template" | "qr_headline" | "carousel_cta_text",
+  field: "whatsapp_template" | "qr_headline" | "carousel_cta_text" | "card_style",
   value: string,
 ) {
   const trimmed = value.trim();
@@ -59,4 +60,9 @@ export async function updateQrHeadline(headline: string) {
 
 export async function updateCarouselCta(text: string) {
   await updateOwnBusinessField("carousel_cta_text", text);
+}
+
+export async function updateCardStyle(styleId: CardStyleId) {
+  if (!(styleId in CARD_STYLES)) return;
+  await updateOwnBusinessField("card_style", styleId);
 }

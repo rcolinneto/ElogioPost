@@ -2,22 +2,45 @@
 
 import { useState, useTransition } from "react";
 import type { Testimonial } from "@/lib/types";
-import TestimonialCard from "@/components/TestimonialCard";
-import { approveTestimonial, rejectTestimonial } from "./actions";
+import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
+import { approveTestimonial, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
 
 type Props = {
   testimonial: Testimonial & { screenshotUrl: string | null };
   businessName: string;
+  defaultCardStyle: string;
 };
 
-export default function SubmissionItem({ testimonial, businessName }: Props) {
+function isCardStyleId(value: string): value is CardStyleId {
+  return value in CARD_STYLES;
+}
+
+export default function SubmissionItem({ testimonial, businessName, defaultCardStyle }: Props) {
   const [pending, startTransition] = useTransition();
 
   const [caption, setCaption] = useState(testimonial.caption ?? "");
   const [generatingCaption, setGeneratingCaption] = useState(false);
   const [captionError, setCaptionError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const [selectedStyle, setSelectedStyle] = useState<CardStyleId>(
+    isCardStyleId(defaultCardStyle) ? defaultCardStyle : "moderno",
+  );
+  const [, startStyleTransition] = useTransition();
+  const [cacheBust, setCacheBust] = useState(0);
+
+  function handleSelectStyle(styleId: CardStyleId) {
+    if (styleId === selectedStyle) return;
+    setSelectedStyle(styleId);
+    startStyleTransition(async () => {
+      await updateCardStyle(styleId);
+      setCacheBust((v) => v + 1);
+    });
+  }
+
+  const cardUrl = (formato: "feed" | "stories" | "google") =>
+    `/api/testimonials/${testimonial.id}/card?formato=${formato}&estilo=${selectedStyle}&v=${cacheBust}`;
 
   async function handleGenerateCaption() {
     setGeneratingCaption(true);
@@ -92,27 +115,66 @@ export default function SubmissionItem({ testimonial, businessName }: Props) {
 
       {testimonial.status === "approved" && (
         <>
-          <TestimonialCard testimonial={testimonial} businessName={businessName} />
+          <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
+            <img
+              src={cardUrl("feed")}
+              alt={`Prévia do card de ${businessName} no estilo ${CARD_STYLES[selectedStyle].label}`}
+              style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
+            />
+          </div>
+
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 0, marginBottom: 6 }}>
+            Estilo do card
+          </p>
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            {Object.values(CARD_STYLES).map((style) => (
+              <button
+                key={style.id}
+                type="button"
+                onClick={() => handleSelectStyle(style.id)}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  opacity: selectedStyle === style.id ? 1 : 0.6,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
+                <img
+                  src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
+                  alt={`Estilo ${style.label}`}
+                  width={64}
+                  height={64}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    objectFit: "cover",
+                    borderRadius: 10,
+                    border:
+                      selectedStyle === style.id
+                        ? "2px solid var(--accent, #7c3aed)"
+                        : "2px solid transparent",
+                  }}
+                />
+                <span style={{ fontSize: 11, color: "var(--muted)" }}>{style.label}</span>
+              </button>
+            ))}
+          </div>
+
           <div className="actions">
-            <a
-              className="btn-download"
-              href={`/api/testimonials/${testimonial.id}/card?formato=feed`}
-              download
-            >
+            <a className="btn-download" href={cardUrl("feed")} download>
               ⬇ Feed
             </a>
-            <a
-              className="btn-download"
-              href={`/api/testimonials/${testimonial.id}/card?formato=stories`}
-              download
-            >
+            <a className="btn-download" href={cardUrl("stories")} download>
               ⬇ Stories
             </a>
-            <a
-              className="btn-download"
-              href={`/api/testimonials/${testimonial.id}/card?formato=google`}
-              download
-            >
+            <a className="btn-download" href={cardUrl("google")} download>
               ⬇ Google
             </a>
           </div>
@@ -120,14 +182,14 @@ export default function SubmissionItem({ testimonial, businessName }: Props) {
             Carrossel pro Instagram (baixe os 2 slides):
           </p>
           <div className="actions">
-            <a
-              className="btn-download"
-              href={`/api/testimonials/${testimonial.id}/card?formato=feed`}
-              download
-            >
+            <a className="btn-download" href={cardUrl("feed")} download>
               ⬇ Slide 1 — depoimento
             </a>
-            <a className="btn-download" href="/api/qrcode?formato=carrossel" download>
+            <a
+              className="btn-download"
+              href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
+              download
+            >
               ⬇ Slide 2 — convite
             </a>
           </div>

@@ -62,6 +62,7 @@ export default async function PainelPage() {
               businessId={business.id}
               businessName={business.name}
               carouselCtaText={business.carousel_cta_text}
+              defaultCardStyle={business.card_style}
             />
           }
           pedir={

@@ -11,6 +11,7 @@ type Props = {
   businessId: string;
   businessName: string;
   carouselCtaText: string;
+  defaultCardStyle: string;
 };
 
 type Tab = "pendentes" | "aprovados";
@@ -20,6 +21,7 @@ export default function ApprovalPanel({
   businessId,
   businessName,
   carouselCtaText,
+  defaultCardStyle,
 }: Props) {
   const [tab, setTab] = useState<Tab>("pendentes");
 
@@ -45,14 +47,23 @@ export default function ApprovalPanel({
           <div className="empty">Nada por aqui ainda.</div>
         ) : (
           pendingTestimonials.map((t) => (
-            <SubmissionItem key={t.id} testimonial={t} businessName={businessName} />
+            <SubmissionItem
+              key={t.id}
+              testimonial={t}
+              businessName={businessName}
+              defaultCardStyle={defaultCardStyle}
+            />
           ))
         ))}
 
       {tab === "aprovados" && (
         <>
           <CarouselCtaEditor text={carouselCtaText} />
-          <ApprovedLibrary businessId={businessId} businessName={businessName} />
+          <ApprovedLibrary
+            businessId={businessId}
+            businessName={businessName}
+            defaultCardStyle={defaultCardStyle}
+          />
         </>
       )}
     </>

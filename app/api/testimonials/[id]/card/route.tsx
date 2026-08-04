@@ -2,20 +2,11 @@ import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
-import { BRAND_GRADIENT } from "@/lib/brand";
+import { resolveCardStyle } from "@/lib/cardStyles";
+import { loadCardFonts } from "@/lib/cardFonts";
+import { renderTestimonialCard, CARD_SIZES, type CardFormat } from "@/lib/cardRender";
 
-const SIZES = {
-  feed: { width: 1080, height: 1080 },
-  stories: { width: 1080, height: 1920 },
-  // Google Business Profile: 1200x900 (4:3), mas Google/Maps podem cortar as
-  // bordas — por isso o conteúdo fica confinado numa coluna central de 900,
-  // igual à altura, deixando 150px de sangria de cada lado.
-  google: { width: 1200, height: 900 },
-} as const;
-
-type Format = keyof typeof SIZES;
-
-function parseFormat(value: string | null): Format {
+function parseFormat(value: string | null): CardFormat {
   if (value === "stories" || value === "google") return value;
   return "feed";
 }
@@ -26,8 +17,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const format = parseFormat(request.nextUrl.searchParams.get("formato"));
-  const { width, height } = SIZES[format];
-  const contentWidth = format === "google" ? 900 : "100%";
+  const { width, height } = CARD_SIZES[format];
 
   const business = await getCurrentBusiness();
   if (!business) {
@@ -54,154 +44,29 @@ export async function GET(
     backgroundUrl = data?.signedUrl ?? null;
   }
 
-  const stars = "★".repeat(testimonial.rating);
-  const bizTag = `via ${business.name}`;
+  const styleParam = request.nextUrl.searchParams.get("estilo");
+  const style = resolveCardStyle(styleParam ?? business.card_style);
+  const fonts = await loadCardFonts();
 
   return new ImageResponse(
-    (
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          justifyContent: format === "google" ? "center" : "flex-start",
-          width: "100%",
-          height: "100%",
-          fontFamily: "sans-serif",
-          color: "white",
-        }}
-      >
-        {backgroundUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image
-          <img
-            src={backgroundUrl}
-            alt=""
-            width={width}
-            height={height}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width,
-              height,
-              objectFit: "cover",
-              display: "flex",
-            }}
-          />
-        ) : (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              background: BRAND_GRADIENT,
-            }}
-          />
-        )}
-
-        {backgroundUrl && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              background: "rgba(15, 8, 28, 0.6)",
-            }}
-          />
-        )}
-
-        {format === "stories" ? (
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              textAlign: "center",
-              width: "100%",
-              height: "100%",
-              padding: "160px 100px",
-            }}
-          >
-            <div style={{ display: "flex", fontSize: 110, opacity: 0.6, lineHeight: 1 }}>
-              &ldquo;
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 60,
-                fontWeight: 700,
-                lineHeight: 1.45,
-                marginTop: 20,
-              }}
-            >
-              {testimonial.body}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                marginTop: 64,
-              }}
-            >
-              <div style={{ display: "flex", fontSize: 46, color: "#fde68a" }}>
-                {stars}
-              </div>
-              <div style={{ display: "flex", fontSize: 44, fontWeight: 700, marginTop: 20 }}>
-                {testimonial.client_name}
-              </div>
-              <div style={{ display: "flex", fontSize: 30, opacity: 0.85, marginTop: 8 }}>
-                {bizTag}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              width: contentWidth,
-              height: "100%",
-              padding: format === "google" ? "60px 0" : 80,
-            }}
-          >
-            <div style={{ display: "flex", fontSize: 130, opacity: 0.6, lineHeight: 1 }}>
-              &ldquo;
-            </div>
-            <div style={{ display: "flex", fontSize: 48, fontWeight: 700, lineHeight: 1.4 }}>
-              {testimonial.body}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-              }}
-            >
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", fontSize: 38, fontWeight: 700 }}>
-                  {testimonial.client_name}
-                </div>
-                <div style={{ display: "flex", fontSize: 26, opacity: 0.85, marginTop: 6 }}>
-                  {bizTag}
-                </div>
-              </div>
-              <div style={{ display: "flex", fontSize: 42, color: "#fde68a" }}>
-                {stars}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+    renderTestimonialCard(
+      style,
+      format,
+      {
+        clientName: testimonial.client_name,
+        rating: testimonial.rating,
+        body: testimonial.body,
+        businessName: business.name,
+      },
+      backgroundUrl,
     ),
     {
       width,
       height,
+      fonts,
       headers: {
         "Content-Disposition": `attachment; filename="depoimento-${testimonial.client_name}-${format}.png"`,
+        "Cache-Control": "no-store",
       },
     },
   );

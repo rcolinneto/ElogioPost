@@ -11,6 +11,7 @@ export type Business = {
   whatsapp_template: string;
   qr_headline: string;
   carousel_cta_text: string;
+  card_style: string;
   created_at: string;
   updated_at: string;
 };

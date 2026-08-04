@@ -3,6 +3,8 @@ import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
 import { QrCtaCard } from "@/lib/qrCard";
+import { resolveCardStyle } from "@/lib/cardStyles";
+import { loadCardFonts } from "@/lib/cardFonts";
 
 const PLAQUINHA_SIZE = 1200;
 const CARROSSEL_SIZE = 1080;
@@ -51,6 +53,12 @@ export async function GET(request: NextRequest) {
     color: { dark: "#000000ff", light: "#ffffffff" },
   });
 
+  const cardStyle =
+    formato === "carrossel"
+      ? resolveCardStyle(request.nextUrl.searchParams.get("estilo") ?? business.card_style)
+      : undefined;
+  const fonts = cardStyle ? await loadCardFonts() : undefined;
+
   return new ImageResponse(
     (
       <QrCtaCard
@@ -60,11 +68,13 @@ export async function GET(request: NextRequest) {
         qrDataUrl={qrDataUrl}
         businessName={business.name}
         qrSize={Math.round(size * 0.42)}
+        style={cardStyle}
       />
     ),
     {
       width: size,
       height: size,
+      fonts,
       headers: {
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Cache-Control": "no-store",

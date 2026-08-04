@@ -18,9 +18,10 @@ function sanitizeForFilter(text: string): string {
 type Props = {
   businessId: string;
   businessName: string;
+  defaultCardStyle: string;
 };
 
-export default function ApprovedLibrary({ businessId, businessName }: Props) {
+export default function ApprovedLibrary({ businessId, businessName, defaultCardStyle }: Props) {
   const [query, setQuery] = useState("");
   const [rating, setRating] = useState(0);
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
@@ -151,7 +152,12 @@ export default function ApprovedLibrary({ businessId, businessName }: Props) {
       ) : (
         <>
           {results.map((t) => (
-            <SubmissionItem key={t.id} testimonial={t} businessName={businessName} />
+            <SubmissionItem
+              key={t.id}
+              testimonial={t}
+              businessName={businessName}
+              defaultCardStyle={defaultCardStyle}
+            />
           ))}
           {hasMore && (
             <button
