@@ -3,6 +3,11 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { buildWhatsappMessage } from "@/lib/whatsapp";
 import { updateWhatsappTemplate } from "./actions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   businessName: string;
@@ -51,59 +56,54 @@ export default function RequestReviewPanel({
   }
 
   return (
-    <>
-      <form onSubmit={handleGenerate}>
-        <label htmlFor="clientName">Nome do cliente</label>
-        <input
-          id="clientName"
-          type="text"
-          required
-          value={clientName}
-          onChange={(e) => setClientName(e.target.value)}
-          placeholder="Ex: Mariana"
-        />
-        <button className="primary" type="submit">
-          Gerar mensagem
-        </button>
-      </form>
-
-      {message && (
-        <div style={{ marginTop: 14 }}>
-          <label htmlFor="generatedMessage">Mensagem pronta</label>
-          <textarea id="generatedMessage" readOnly value={message} rows={5} />
-          <button
-            type="button"
-            className="primary"
-            onClick={handleCopy}
-            style={{ marginTop: 10 }}
-          >
-            {copied ? "Copiado!" : "Copiar mensagem"}
-          </button>
-        </div>
-      )}
-
-      <details style={{ marginTop: 20 }}>
-        <summary
-          style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--muted)" }}
-        >
-          Personalizar modelo da mensagem
-        </summary>
-        <form onSubmit={handleSaveTemplate} style={{ marginTop: 10 }}>
-          <textarea
-            value={templateDraft}
-            onChange={(e) => setTemplateDraft(e.target.value)}
-            rows={5}
+    <Card>
+      <CardContent className="space-y-4">
+        <form onSubmit={handleGenerate} className="space-y-2">
+          <Label htmlFor="clientName">Nome do cliente</Label>
+          <Input
+            id="clientName"
+            type="text"
+            required
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Ex: Mariana"
           />
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
-            Use {"{{nome}}"}, {"{{negocio}}"} e {"{{link}}"} — eles são
-            trocados automaticamente pelo nome do cliente, o nome do seu
-            negócio e o link de coleta.
-          </p>
-          <button className="primary" type="submit" disabled={isPending}>
-            {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar modelo"}
-          </button>
+          <Button type="submit" className="w-full">
+            Gerar mensagem
+          </Button>
         </form>
-      </details>
-    </>
+
+        {message && (
+          <div className="space-y-2">
+            <Label htmlFor="generatedMessage">Mensagem pronta</Label>
+            <Textarea id="generatedMessage" readOnly value={message} rows={5} />
+            <Button type="button" variant="secondary" className="w-full" onClick={handleCopy}>
+              {copied ? "Copiado!" : "Copiar mensagem"}
+            </Button>
+          </div>
+        )}
+
+        <details className="group">
+          <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+            Personalizar modelo da mensagem
+          </summary>
+          <form onSubmit={handleSaveTemplate} className="mt-3 space-y-2">
+            <Textarea
+              value={templateDraft}
+              onChange={(e) => setTemplateDraft(e.target.value)}
+              rows={5}
+            />
+            <p className="text-xs text-muted-foreground">
+              Use {"{{nome}}"}, {"{{negocio}}"} e {"{{link}}"} — eles são
+              trocados automaticamente pelo nome do cliente, o nome do seu
+              negócio e o link de coleta.
+            </p>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar modelo"}
+            </Button>
+          </form>
+        </details>
+      </CardContent>
+    </Card>
   );
 }

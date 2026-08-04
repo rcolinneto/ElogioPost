@@ -74,7 +74,7 @@ export default function LoginPage() {
           <p style={{ fontSize: 13, marginTop: 16 }}>
             <Link href="/esqueci-senha">Esqueci minha senha</Link>
           </p>
-          <p style={{ fontSize: 13, marginTop: 6, color: "var(--muted)" }}>
+          <p style={{ fontSize: 13, marginTop: 6, color: "var(--legacy-muted)" }}>
             Não tem conta ainda? <Link href="/cadastro">Criar conta</Link>
           </p>
         </div>

@@ -4,6 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Testimonial } from "@/lib/types";
 import SubmissionItem from "./SubmissionItem";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const PAGE_SIZE = 10;
 
@@ -98,59 +108,63 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
   const filtersActive = query.trim() !== "" || rating > 0;
 
   return (
-    <>
-      <label htmlFor="librarySearch">Buscar</label>
-      <input
-        id="librarySearch"
-        type="text"
-        placeholder="Nome do cliente ou trecho do depoimento"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label htmlFor="librarySearch">Buscar</Label>
+        <Input
+          id="librarySearch"
+          type="text"
+          placeholder="Nome do cliente ou trecho do depoimento"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 0 }}>
-        <div style={{ flex: 1 }}>
-          <label htmlFor="libraryRating">Nota</label>
-          <select
-            id="libraryRating"
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-          >
-            <option value={0}>Todas as notas</option>
-            <option value={5}>5 estrelas</option>
-            <option value={4}>4 estrelas</option>
-            <option value={3}>3 estrelas</option>
-            <option value={2}>2 estrelas</option>
-            <option value={1}>1 estrela</option>
-          </select>
+      <div className="flex gap-2.5">
+        <div className="flex-1 space-y-1.5">
+          <Label htmlFor="libraryRating">Nota</Label>
+          <Select value={String(rating)} onValueChange={(v) => setRating(Number(v))}>
+            <SelectTrigger id="libraryRating" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Todas as notas</SelectItem>
+              <SelectItem value="5">5 estrelas</SelectItem>
+              <SelectItem value="4">4 estrelas</SelectItem>
+              <SelectItem value="3">3 estrelas</SelectItem>
+              <SelectItem value="2">2 estrelas</SelectItem>
+              <SelectItem value="1">1 estrela</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div style={{ flex: 1 }}>
-          <label htmlFor="librarySort">Ordenar</label>
-          <select
-            id="librarySort"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-          >
-            <option value="recent">Mais recente</option>
-            <option value="oldest">Mais antigo</option>
-          </select>
+        <div className="flex-1 space-y-1.5">
+          <Label htmlFor="librarySort">Ordenar</Label>
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+            <SelectTrigger id="librarySort" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Mais recente</SelectItem>
+              <SelectItem value="oldest">Mais antigo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {loading ? (
-        <div className="empty">Carregando...</div>
+        <p className="py-10 text-center text-sm text-muted-foreground">Carregando...</p>
       ) : error ? (
-        <div className="error-msg" style={{ marginTop: 14 }}>
+        <p className="text-sm text-destructive">
           Não deu pra buscar os depoimentos agora. Tenta de novo.
-        </div>
+        </p>
       ) : results.length === 0 ? (
-        <div className="empty">
+        <p className="py-10 text-center text-sm text-muted-foreground">
           {filtersActive
             ? "Nenhum depoimento encontrado com esses filtros."
             : "Nada por aqui ainda."}
-        </div>
+        </p>
       ) : (
-        <>
+        <div className="space-y-3">
           {results.map((t) => (
             <SubmissionItem
               key={t.id}
@@ -160,17 +174,18 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
             />
           ))}
           {hasMore && (
-            <button
+            <Button
               type="button"
-              className="primary"
+              variant="secondary"
+              className="w-full"
               onClick={() => runSearch(results.length, true)}
               disabled={loadingMore}
             >
               {loadingMore ? "Carregando..." : "Carregar mais"}
-            </button>
+            </Button>
           )}
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }

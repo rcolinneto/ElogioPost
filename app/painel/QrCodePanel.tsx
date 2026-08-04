@@ -2,6 +2,10 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { updateQrHeadline } from "./actions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function QrCodePanel({ headline }: { headline: string }) {
   const [headlineDraft, setHeadlineDraft] = useState(headline);
@@ -23,44 +27,48 @@ export default function QrCodePanel({ headline }: { headline: string }) {
   const puroUrl = `/api/qrcode?formato=puro&v=${cacheBust}`;
 
   return (
-    <>
-      <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
-        <img
-          src={plaquinhaUrl}
-          alt="Prévia da plaquinha com QR code"
-          style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
-        />
-      </div>
-
-      <div className="actions">
-        <a className="btn-download" href={plaquinhaUrl} download>
-          ⬇ Baixar plaquinha
-        </a>
-        <a className="btn-download" href={puroUrl} download>
-          ⬇ Baixar QR code puro
-        </a>
-      </div>
-
-      <details style={{ marginTop: 20 }}>
-        <summary
-          style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--muted)" }}
-        >
-          Personalizar texto da plaquinha
-        </summary>
-        <form onSubmit={handleSave} style={{ marginTop: 10 }}>
-          <label htmlFor="qrHeadline">Chamada no topo da plaquinha</label>
-          <input
-            id="qrHeadline"
-            type="text"
-            value={headlineDraft}
-            onChange={(e) => setHeadlineDraft(e.target.value)}
+    <Card>
+      <CardContent className="space-y-4">
+        <div className="flex justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
+          <img
+            src={plaquinhaUrl}
+            alt="Prévia da plaquinha com QR code"
+            className="w-full max-w-[280px] rounded-xl"
           />
-          <button className="primary" type="submit" disabled={isPending}>
-            {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar texto"}
-          </button>
-        </form>
-      </details>
-    </>
+        </div>
+
+        <div className="flex gap-2">
+          <Button asChild variant="secondary" className="flex-1">
+            <a href={plaquinhaUrl} download>
+              ⬇ Baixar plaquinha
+            </a>
+          </Button>
+          <Button asChild variant="secondary" className="flex-1">
+            <a href={puroUrl} download>
+              ⬇ Baixar QR code puro
+            </a>
+          </Button>
+        </div>
+
+        <details className="group">
+          <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
+            Personalizar texto da plaquinha
+          </summary>
+          <form onSubmit={handleSave} className="mt-3 space-y-2">
+            <Label htmlFor="qrHeadline">Chamada no topo da plaquinha</Label>
+            <Input
+              id="qrHeadline"
+              type="text"
+              value={headlineDraft}
+              onChange={(e) => setHeadlineDraft(e.target.value)}
+            />
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar texto"}
+            </Button>
+          </form>
+        </details>
+      </CardContent>
+    </Card>
   );
 }

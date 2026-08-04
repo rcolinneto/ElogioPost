@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
       <main className="app-main">
         <div className="card-panel">
           <h2>Como se chama o seu negócio?</h2>
-          <p style={{ fontSize: 14, color: "var(--muted)" }}>
+          <p style={{ fontSize: 14, color: "var(--legacy-muted)" }}>
             Esse nome aparece nos cards de depoimento gerados e no seu link de
             coleta.
           </p>

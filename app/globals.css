@@ -1,13 +1,56 @@
+/* Tailwind fica escopado ao painel: importamos só theme+utilities (sem
+   preflight) pra não resetar margem/lista/etc do resto do site, que ainda
+   usa o CSS "clássico" abaixo. Ver .painel-shell mais adiante. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --brand: #7c3aed;
   --brand-dark: #5b21b6;
   --bg: #f6f5fb;
   --card-bg: #ffffff;
   --text: #1f2133;
-  --muted: #6b7280;
-  --success: #16a34a;
-  --danger: #dc2626;
+  /* var(--muted) do CSS "clássico" (fora do painel) — não confundir com o
+     token --muted do shadcn logo abaixo, que é a cor de fundo "muted", não
+     de texto. */
+  --legacy-muted: #6b7280;
+  --muted: oklch(0.97 0 0);
   --star: #f59e0b;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 * {
@@ -27,7 +70,7 @@ body {
   color: var(--text);
 }
 
-a {
+a:not(.painel-shell, .painel-shell *) {
   color: inherit;
 }
 
@@ -66,19 +109,23 @@ main.app-main {
   font-size: 17px;
 }
 
-label {
+/* :not(.painel-shell, .painel-shell *) exclui o painel, que usa os
+   componentes do shadcn (Label/Input/Textarea/Select) em vez desse reset —
+   sem isso, essas regras "clássicas" (fora de qualquer @layer) venceriam as
+   classes utilitárias do Tailwind, que são todas dentro de @layer. */
+label:not(.painel-shell, .painel-shell *) {
   display: block;
   font-size: 13px;
   font-weight: 600;
   margin: 14px 0 6px;
-  color: var(--muted);
+  color: var(--legacy-muted);
 }
 
-input[type="text"],
-input[type="email"],
-textarea,
-input[type="file"],
-select {
+input[type="text"]:not(.painel-shell, .painel-shell *),
+input[type="email"]:not(.painel-shell, .painel-shell *),
+textarea:not(.painel-shell, .painel-shell *),
+input[type="file"]:not(.painel-shell, .painel-shell *),
+select:not(.painel-shell, .painel-shell *) {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
@@ -87,7 +134,7 @@ select {
   font-family: inherit;
   background: white;
 }
-textarea {
+textarea:not(.painel-shell, .painel-shell *) {
   min-height: 90px;
   resize: vertical;
 }
@@ -158,109 +205,91 @@ button.primary:disabled {
   margin-bottom: 18px;
 }
 
-/* ---- painel do dono ---- */
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.tabs button {
-  flex: 1;
-  padding: 9px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--muted);
-}
-.tabs button.active {
-  background: #f3e8ff;
-  border-color: var(--brand);
-  color: var(--brand-dark);
-}
-
-.submission {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.submission .top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-.submission .name {
-  font-weight: 700;
-  font-size: 14px;
-}
-.submission .stars-small {
-  color: var(--star);
-  font-size: 13px;
-}
-.submission .text {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #374151;
-}
-.submission img.upload-preview {
-  max-width: 100%;
-  border-radius: 8px;
-  margin-top: 8px;
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.actions button,
-.actions a {
-  flex: 1;
-  padding: 8px;
-  border-radius: 7px;
-  border: none;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-approve {
-  background: #dcfce7;
-  color: var(--success);
-}
-.btn-reject {
-  background: #fee2e2;
-  color: var(--danger);
-}
-.btn-download {
-  background: #ede9fe;
-  color: var(--brand-dark);
-  text-decoration: none;
-  text-align: center;
-  display: block;
-}
-
-.empty {
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
-  padding: 30px 10px;
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
-.status-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-}
-.status-pendente {
-  background: #fef3c7;
-  color: #92400e;
-}
-.status-aprovado {
-  background: #dcfce7;
-  color: #166534;
+/* Escopado a .painel-shell (app/painel/layout.tsx) — o resto do site
+   continua no CSS "clássico" acima, sem preflight nem esses tokens. */
+@layer base {
+  .painel-shell,
+  .painel-shell * {
+    @apply border-border outline-ring/50;
+  }
+  .painel-shell {
+    @apply bg-background text-foreground font-sans;
+  }
 }

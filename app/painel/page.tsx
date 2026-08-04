@@ -2,11 +2,10 @@ import { headers } from "next/headers";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
 import type { Testimonial } from "@/lib/types";
+import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "./PageHeader";
 import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
-import RequestReviewPanel from "./RequestReviewPanel";
-import QrCodePanel from "./QrCodePanel";
-import PainelTabs from "./PainelTabs";
 
 export default async function PainelPage() {
   const business = await getCurrentBusiness();
@@ -43,38 +42,28 @@ export default async function PainelPage() {
 
   return (
     <>
-      <header className="app-header">
-        <h1>{business.name}</h1>
-        <p>Painel de depoimentos</p>
-      </header>
-      <main className="app-main">
-        <div className="card-panel">
-          <h2>Seu link de coleta</h2>
-          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 0 }}>
+      <PageHeader
+        title="Depoimentos"
+        description="Aprove os depoimentos recebidos e baixe os cards prontos pra postar."
+      />
+
+      <Card className="mb-6">
+        <CardContent className="space-y-2">
+          <p className="text-sm font-medium">Seu link de coleta</p>
+          <p className="text-xs text-muted-foreground">
             Manda esse link pro seu cliente no WhatsApp depois de atender ele.
           </p>
           <CopyLinkButton url={collectionUrl} />
-        </div>
-        <PainelTabs
-          depoimentos={
-            <ApprovalPanel
-              pendingTestimonials={pendingWithUrls}
-              businessId={business.id}
-              businessName={business.name}
-              carouselCtaText={business.carousel_cta_text}
-              defaultCardStyle={business.card_style}
-            />
-          }
-          pedir={
-            <RequestReviewPanel
-              businessName={business.name}
-              reviewUrl={collectionUrl}
-              template={business.whatsapp_template}
-            />
-          }
-          qrcode={<QrCodePanel headline={business.qr_headline} />}
-        />
-      </main>
+        </CardContent>
+      </Card>
+
+      <ApprovalPanel
+        pendingTestimonials={pendingWithUrls}
+        businessId={business.id}
+        businessName={business.name}
+        carouselCtaText={business.carousel_cta_text}
+        defaultCardStyle={business.card_style}
+      />
     </>
   );
 }

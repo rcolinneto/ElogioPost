@@ -2,6 +2,9 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { updateCarouselCta } from "./actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function CarouselCtaEditor({ text }: { text: string }) {
   const [draft, setDraft] = useState(text);
@@ -18,23 +21,21 @@ export default function CarouselCtaEditor({ text }: { text: string }) {
   }
 
   return (
-    <details style={{ marginBottom: 18 }}>
-      <summary
-        style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, color: "var(--muted)" }}
-      >
+    <details className="group">
+      <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
         Personalizar texto do carrossel (slide 2)
       </summary>
-      <form onSubmit={handleSave} style={{ marginTop: 10 }}>
-        <label htmlFor="carouselCta">Chamada no slide de convite</label>
-        <input
+      <form onSubmit={handleSave} className="mt-3 space-y-2">
+        <Label htmlFor="carouselCta">Chamada no slide de convite</Label>
+        <Input
           id="carouselCta"
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <button className="primary" type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending}>
           {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar texto"}
-        </button>
+        </Button>
       </form>
     </details>
   );

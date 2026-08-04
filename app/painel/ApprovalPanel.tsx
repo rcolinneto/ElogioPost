@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import type { Testimonial } from "@/lib/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubmissionItem from "./SubmissionItem";
 import ApprovedLibrary from "./ApprovedLibrary";
 import CarouselCtaEditor from "./CarouselCtaEditor";
@@ -14,8 +14,6 @@ type Props = {
   defaultCardStyle: string;
 };
 
-type Tab = "pendentes" | "aprovados";
-
 export default function ApprovalPanel({
   pendingTestimonials,
   businessId,
@@ -23,28 +21,18 @@ export default function ApprovalPanel({
   carouselCtaText,
   defaultCardStyle,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("pendentes");
-
   return (
-    <>
-      <div className="tabs">
-        <button
-          className={tab === "pendentes" ? "active" : ""}
-          onClick={() => setTab("pendentes")}
-        >
-          Pendentes
-        </button>
-        <button
-          className={tab === "aprovados" ? "active" : ""}
-          onClick={() => setTab("aprovados")}
-        >
-          Aprovados
-        </button>
-      </div>
+    <Tabs defaultValue="pendentes">
+      <TabsList>
+        <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
+        <TabsTrigger value="aprovados">Aprovados</TabsTrigger>
+      </TabsList>
 
-      {tab === "pendentes" &&
-        (pendingTestimonials.length === 0 ? (
-          <div className="empty">Nada por aqui ainda.</div>
+      <TabsContent value="pendentes" className="space-y-3 pt-4">
+        {pendingTestimonials.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            Nada por aqui ainda.
+          </p>
         ) : (
           pendingTestimonials.map((t) => (
             <SubmissionItem
@@ -54,18 +42,17 @@ export default function ApprovalPanel({
               defaultCardStyle={defaultCardStyle}
             />
           ))
-        ))}
+        )}
+      </TabsContent>
 
-      {tab === "aprovados" && (
-        <>
-          <CarouselCtaEditor text={carouselCtaText} />
-          <ApprovedLibrary
-            businessId={businessId}
-            businessName={businessName}
-            defaultCardStyle={defaultCardStyle}
-          />
-        </>
-      )}
-    </>
+      <TabsContent value="aprovados" className="space-y-4 pt-4">
+        <CarouselCtaEditor text={carouselCtaText} />
+        <ApprovedLibrary
+          businessId={businessId}
+          businessName={businessName}
+          defaultCardStyle={defaultCardStyle}
+        />
+      </TabsContent>
+    </Tabs>
   );
 }

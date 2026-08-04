@@ -119,7 +119,7 @@ export default function CadastroPage() {
             </form>
           )}
 
-          <p style={{ fontSize: 13, marginTop: 16, color: "var(--muted)" }}>
+          <p style={{ fontSize: 13, marginTop: 16, color: "var(--legacy-muted)" }}>
             Já tem conta? <Link href="/login">Entrar</Link>
           </p>
         </div>

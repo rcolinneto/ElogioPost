@@ -5,6 +5,12 @@ import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 import { approveTestimonial, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 type Props = {
   testimonial: Testimonial & { screenshotUrl: string | null };
@@ -14,6 +20,15 @@ type Props = {
 
 function isCardStyleId(value: string): value is CardStyleId {
   return value in CARD_STYLES;
+}
+
+function Stars({ rating }: { rating: number }) {
+  return (
+    <span className="text-sm text-amber-500">
+      {"★".repeat(rating)}
+      <span className="text-muted-foreground/40">{"★".repeat(5 - rating)}</span>
+    </span>
+  );
 }
 
 export default function SubmissionItem({ testimonial, businessName, defaultCardStyle }: Props) {
@@ -61,188 +76,184 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
   }
 
   return (
-    <div className="submission">
-      <div className="top">
-        <div>
-          <div className="name">{testimonial.client_name}</div>
-          <div className="stars-small">
-            {"★".repeat(testimonial.rating)}
-            {"☆".repeat(5 - testimonial.rating)}
+    <Card>
+      <CardContent className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-0.5">
+            <p className="text-sm font-semibold">{testimonial.client_name}</p>
+            <Stars rating={testimonial.rating} />
           </div>
+          <Badge
+            className={
+              testimonial.status === "pending"
+                ? "bg-amber-100 text-amber-800"
+                : "bg-green-100 text-green-800"
+            }
+          >
+            {testimonial.status === "pending" ? "pendente" : "aprovado"}
+          </Badge>
         </div>
-        <span
-          className={`status-badge status-${
-            testimonial.status === "pending" ? "pendente" : "aprovado"
-          }`}
-        >
-          {testimonial.status === "pending" ? "pendente" : "aprovado"}
-        </span>
-      </div>
-      <div className="text">&quot;{testimonial.body}&quot;</div>
 
-      {testimonial.status === "pending" && (
-        <>
-          {testimonial.screenshotUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- print de referência interno, não precisa de otimização do next/image
-            <img
-              className="upload-preview"
-              src={testimonial.screenshotUrl}
-              alt="Print enviado pelo cliente"
-            />
-          )}
-          <div className="actions">
-            <button
-              className="btn-approve"
-              disabled={pending}
-              onClick={() =>
-                startTransition(() => approveTestimonial(testimonial.id))
-              }
-            >
-              ✓ Aprovar
-            </button>
-            <button
-              className="btn-reject"
-              disabled={pending}
-              onClick={() =>
-                startTransition(() => rejectTestimonial(testimonial.id))
-              }
-            >
-              ✕ Rejeitar
-            </button>
-          </div>
-        </>
-      )}
+        <p className="text-sm text-foreground/80">&quot;{testimonial.body}&quot;</p>
 
-      {testimonial.status === "approved" && (
-        <>
-          <div style={{ display: "flex", justifyContent: "center", margin: "14px 0" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
-            <img
-              src={cardUrl("feed")}
-              alt={`Prévia do card de ${businessName} no estilo ${CARD_STYLES[selectedStyle].label}`}
-              style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
-            />
-          </div>
-
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 0, marginBottom: 6 }}>
-            Estilo do card
-          </p>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-            {Object.values(CARD_STYLES).map((style) => (
-              <button
-                key={style.id}
-                type="button"
-                onClick={() => handleSelectStyle(style.id)}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: 0,
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  opacity: selectedStyle === style.id ? 1 : 0.6,
-                }}
+        {testimonial.status === "pending" && (
+          <>
+            {testimonial.screenshotUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- print de referência interno, não precisa de otimização do next/image
+              <img
+                className="max-w-full rounded-lg"
+                src={testimonial.screenshotUrl}
+                alt="Print enviado pelo cliente"
+              />
+            )}
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 bg-green-600 text-white hover:bg-green-700"
+                disabled={pending}
+                onClick={() => startTransition(() => approveTestimonial(testimonial.id))}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
-                <img
-                  src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
-                  alt={`Estilo ${style.label}`}
-                  width={64}
-                  height={64}
-                  style={{
-                    width: 64,
-                    height: 64,
-                    objectFit: "cover",
-                    borderRadius: 10,
-                    border:
-                      selectedStyle === style.id
-                        ? "2px solid var(--accent, #7c3aed)"
-                        : "2px solid transparent",
-                  }}
-                />
-                <span style={{ fontSize: 11, color: "var(--muted)" }}>{style.label}</span>
-              </button>
-            ))}
-          </div>
+                ✓ Aprovar
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={pending}
+                onClick={() => startTransition(() => rejectTestimonial(testimonial.id))}
+              >
+                ✕ Rejeitar
+              </Button>
+            </div>
+          </>
+        )}
 
-          <div className="actions">
-            <a className="btn-download" href={cardUrl("feed")} download>
-              ⬇ Feed
-            </a>
-            <a className="btn-download" href={cardUrl("stories")} download>
-              ⬇ Stories
-            </a>
-            <a className="btn-download" href={cardUrl("google")} download>
-              ⬇ Google
-            </a>
-          </div>
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12, marginBottom: 4 }}>
-            Carrossel pro Instagram (baixe os 2 slides):
-          </p>
-          <div className="actions">
-            <a className="btn-download" href={cardUrl("feed")} download>
-              ⬇ Slide 1 — depoimento
-            </a>
-            <a
-              className="btn-download"
-              href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
-              download
-            >
-              ⬇ Slide 2 — convite
-            </a>
-          </div>
+        {testimonial.status === "approved" && (
+          <>
+            <div className="flex justify-center py-2">
+              {/* eslint-disable-next-line @next/next/no-img-element -- prévia gerada pela nossa própria rota autenticada */}
+              <img
+                src={cardUrl("feed")}
+                alt={`Prévia do card de ${businessName} no estilo ${CARD_STYLES[selectedStyle].label}`}
+                className="w-full max-w-[280px] rounded-xl"
+              />
+            </div>
 
-          <div style={{ marginTop: 14 }}>
-            <label htmlFor={`caption-${testimonial.id}`}>Legenda sugerida (IA)</label>
-            {caption ? (
-              <>
-                <textarea
-                  id={`caption-${testimonial.id}`}
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  rows={4}
-                />
-                {captionError && (
-                  <div className="error-msg" style={{ marginTop: 8 }}>
-                    {captionError}
-                  </div>
-                )}
-                <div className="actions" style={{ marginTop: 8 }}>
-                  <button type="button" className="btn-download" onClick={handleCopyCaption}>
-                    {copied ? "Copiado!" : "⬇ Copiar legenda"}
-                  </button>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Estilo do card</p>
+              <div className="flex gap-2.5">
+                {Object.values(CARD_STYLES).map((style) => (
                   <button
+                    key={style.id}
                     type="button"
-                    className="btn-download"
+                    onClick={() => handleSelectStyle(style.id)}
+                    className="flex flex-col items-center gap-1.5"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
+                    <img
+                      src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
+                      alt={`Estilo ${style.label}`}
+                      width={64}
+                      height={64}
+                      className={cn(
+                        "size-16 rounded-lg object-cover ring-2 ring-offset-2 ring-offset-background transition-opacity",
+                        selectedStyle === style.id
+                          ? "ring-primary opacity-100"
+                          : "ring-transparent opacity-60",
+                      )}
+                    />
+                    <span className="text-[11px] text-muted-foreground">{style.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button asChild variant="secondary" className="flex-1">
+                <a href={cardUrl("feed")} download>
+                  ⬇ Feed
+                </a>
+              </Button>
+              <Button asChild variant="secondary" className="flex-1">
+                <a href={cardUrl("stories")} download>
+                  ⬇ Stories
+                </a>
+              </Button>
+              <Button asChild variant="secondary" className="flex-1">
+                <a href={cardUrl("google")} download>
+                  ⬇ Google
+                </a>
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Carrossel pro Instagram (baixe os 2 slides):
+            </p>
+            <div className="flex gap-2">
+              <Button asChild variant="secondary" className="flex-1">
+                <a href={cardUrl("feed")} download>
+                  ⬇ Slide 1 — depoimento
+                </a>
+              </Button>
+              <Button asChild variant="secondary" className="flex-1">
+                <a
+                  href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
+                  download
+                >
+                  ⬇ Slide 2 — convite
+                </a>
+              </Button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <Label htmlFor={`caption-${testimonial.id}`}>Legenda sugerida (IA)</Label>
+              {caption ? (
+                <>
+                  <Textarea
+                    id={`caption-${testimonial.id}`}
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    rows={4}
+                  />
+                  {captionError && (
+                    <p className="text-sm text-destructive">{captionError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={handleCopyCaption}
+                    >
+                      {copied ? "Copiado!" : "⬇ Copiar legenda"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={handleGenerateCaption}
+                      disabled={generatingCaption}
+                    >
+                      {generatingCaption ? "Gerando..." : "↻ Gerar de novo"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {captionError && (
+                    <p className="text-sm text-destructive">{captionError}</p>
+                  )}
+                  <Button
+                    type="button"
                     onClick={handleGenerateCaption}
                     disabled={generatingCaption}
                   >
-                    {generatingCaption ? "Gerando..." : "↻ Gerar de novo"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {captionError && (
-                  <div className="error-msg" style={{ marginBottom: 8 }}>
-                    {captionError}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={handleGenerateCaption}
-                  disabled={generatingCaption}
-                >
-                  {generatingCaption ? "Gerando..." : "✨ Gerar legenda com IA"}
-                </button>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </div>
+                    {generatingCaption ? "Gerando..." : "✨ Gerar legenda com IA"}
+                  </Button>
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

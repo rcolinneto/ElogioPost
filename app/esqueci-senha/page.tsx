@@ -66,7 +66,7 @@ export default function EsqueciSenhaPage() {
             </form>
           )}
 
-          <p style={{ fontSize: 13, marginTop: 16, color: "var(--muted)" }}>
+          <p style={{ fontSize: 13, marginTop: 16, color: "var(--legacy-muted)" }}>
             <Link href="/login">Voltar pro login</Link>
           </p>
         </div>
