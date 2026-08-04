@@ -1,8 +1,14 @@
-/* Tailwind fica escopado ao painel: importamos só theme+utilities (sem
-   preflight) pra não resetar margem/lista/etc do resto do site, que ainda
-   usa o CSS "clássico" abaixo. Ver .painel-shell mais adiante. */
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+/* Preflight (reset de margem/lista/aparência de formulário) entra completo
+   e global — tentamos escopar só ao painel antes, mas componentes do
+   shadcn/Radix com portal (Select, Tooltip, Sheet) renderizam fora de
+   .painel-shell no DOM e ficariam sem o reset. Auditamos o resto do site
+   (login/cadastro/onboarding/coleta pública) e confirmado: nenhuma página
+   fora do painel usa <ul>/<table>/<img> crus, e todo <h1>/<h2>/<button> já
+   tem uma regra clássica específica (sem @layer, então sempre vence
+   qualquer coisa do Tailwind) — então o preflight global não muda nada por
+   lá. O que continua escopado a .painel-shell é só a aparência do shadcn em
+   si (cor de fundo/texto/borda padrão), mais abaixo. */
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -26,8 +32,13 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  /* Identidade da marca (mesma paleta dos cards de depoimento — ver
+     lib/cardStyles.ts "moderno" / BRAND_GRADIENT) aplicada nos pontos que
+     carregam a cor principal da interface: botão primário, item ativo do
+     menu e anel de foco. O resto dos tokens shadcn fica neutro de propósito
+     (não é todo elemento que deve ser roxo). */
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted-foreground: oklch(0.556 0 0);
@@ -36,7 +47,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: var(--brand);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -45,12 +56,14 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: #ffffff;
+  /* item ativo do menu: mesmo tom claro de lavanda + roxo escuro que a
+     versão antiga em tabs usava (.tabs button.active), agora no shadcn */
+  --sidebar-accent: #f3e8ff;
+  --sidebar-accent-foreground: var(--brand-dark);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: var(--brand);
 }
 
 * {

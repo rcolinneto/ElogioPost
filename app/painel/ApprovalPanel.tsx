@@ -1,10 +1,12 @@
 "use client";
 
+import { Inbox } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SubmissionItem from "./SubmissionItem";
 import ApprovedLibrary from "./ApprovedLibrary";
 import CarouselCtaEditor from "./CarouselCtaEditor";
+import { EmptyState } from "./EmptyState";
 
 type Props = {
   pendingTestimonials: (Testimonial & { screenshotUrl: string | null })[];
@@ -30,9 +32,12 @@ export default function ApprovalPanel({
 
       <TabsContent value="pendentes" className="space-y-3 pt-4">
         {pendingTestimonials.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
-            Nada por aqui ainda.
-          </p>
+          <EmptyState
+            icon={Inbox}
+            title="Nenhum depoimento pendente"
+            description="Peça pros seus clientes deixarem um depoimento — assim que eles enviarem, aparece aqui pra você aprovar."
+            action={{ label: "Pedir depoimento", href: "/painel/pedir" }}
+          />
         ) : (
           pendingTestimonials.map((t) => (
             <SubmissionItem

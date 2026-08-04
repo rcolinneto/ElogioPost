@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { BadgeCheck, SearchX } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Testimonial } from "@/lib/types";
 import SubmissionItem from "./SubmissionItem";
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoadingButton } from "./LoadingButton";
+import { EmptyState } from "./EmptyState";
 
 const PAGE_SIZE = 10;
 
@@ -163,11 +165,19 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
           Não deu pra buscar os depoimentos agora. Tenta de novo.
         </p>
       ) : results.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">
-          {filtersActive
-            ? "Nenhum depoimento encontrado com esses filtros."
-            : "Nada por aqui ainda."}
-        </p>
+        filtersActive ? (
+          <EmptyState
+            icon={SearchX}
+            title="Nenhum depoimento encontrado"
+            description="Tenta ajustar a busca ou os filtros de nota."
+          />
+        ) : (
+          <EmptyState
+            icon={BadgeCheck}
+            title="Nenhum depoimento aprovado ainda"
+            description="Quando você aprovar um depoimento pendente, ele aparece aqui."
+          />
+        )
       ) : (
         <div className="space-y-3">
           {results.map((t) => (

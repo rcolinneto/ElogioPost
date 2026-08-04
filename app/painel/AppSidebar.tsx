@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquareQuote, QrCode, Send } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,12 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-const NAV_ITEMS = [
-  { href: "/painel", label: "Depoimentos", icon: MessageSquareQuote },
-  { href: "/painel/pedir", label: "Pedir depoimento", icon: Send },
-  { href: "/painel/qrcode", label: "QR Code", icon: QrCode },
-];
+import { NAV_ITEMS } from "./nav-items";
 
 export default function AppSidebar({ businessName }: { businessName: string }) {
   const pathname = usePathname();

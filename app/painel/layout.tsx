@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
 import AppSidebar from "./AppSidebar";
+import PageTitle from "./PageTitle";
 
 // Fonte carregada só aqui (não no layout raiz) pra não pesar as páginas
 // públicas — o design system novo (Tailwind + shadcn) fica escopado a
@@ -32,7 +33,7 @@ export default async function PainelLayout({
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="h-5" />
-              <span className="text-sm font-medium">{business.name}</span>
+              <PageTitle />
             </header>
             <div className="flex-1 p-4 md:p-8">
               <div className="mx-auto w-full max-w-2xl">{children}</div>
