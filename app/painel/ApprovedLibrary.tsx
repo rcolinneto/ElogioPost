@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Testimonial } from "@/lib/types";
 import SubmissionItem from "./SubmissionItem";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LoadingButton } from "./LoadingButton";
 
 const PAGE_SIZE = 10;
 
@@ -77,7 +78,11 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
       if (thisRequest !== requestId.current) return;
 
       if (queryError) {
-        setError(true);
+        if (append) {
+          toast.error("Não deu pra carregar mais depoimentos. Tenta de novo.");
+        } else {
+          setError(true);
+        }
         setLoading(false);
         setLoadingMore(false);
         return;
@@ -174,15 +179,16 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
             />
           ))}
           {hasMore && (
-            <Button
+            <LoadingButton
               type="button"
               variant="secondary"
               className="w-full"
               onClick={() => runSearch(results.length, true)}
-              disabled={loadingMore}
+              loading={loadingMore}
+              loadingText="Carregando..."
             >
-              {loadingMore ? "Carregando..." : "Carregar mais"}
-            </Button>
+              Carregar mais
+            </LoadingButton>
           )}
         </div>
       )}

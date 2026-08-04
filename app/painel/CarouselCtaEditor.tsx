@@ -1,23 +1,30 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
 import { updateCarouselCta } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "./LoadingButton";
 
 export default function CarouselCtaEditor({ text }: { text: string }) {
   const [draft, setDraft] = useState(text);
-  const [isPending, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  function handleSave(event: FormEvent) {
+  async function handleSave(event: FormEvent) {
     event.preventDefault();
-    startTransition(async () => {
+    setSaving(true);
+    try {
       await updateCarouselCta(draft);
+      toast.success("Texto do carrossel salvo!");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    });
+    } catch {
+      toast.error("Não deu pra salvar agora. Tenta de novo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -33,9 +40,9 @@ export default function CarouselCtaEditor({ text }: { text: string }) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar texto"}
-        </Button>
+        <LoadingButton type="submit" loading={saving} loadingText="Salvando...">
+          {saved ? "Salvo!" : "Salvar texto"}
+        </LoadingButton>
       </form>
     </details>
   );

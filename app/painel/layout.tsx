@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/sonner";
 import AppSidebar from "./AppSidebar";
 
 // Fonte carregada só aqui (não no layout raiz) pra não pesar as páginas
@@ -39,6 +40,7 @@ export default async function PainelLayout({
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>
+      <Toaster />
     </div>
   );
 }

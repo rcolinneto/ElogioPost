@@ -7,10 +7,11 @@ import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 
 async function setStatus(id: string, status: "approved" | "rejected") {
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("testimonials")
     .update({ status, reviewed_at: new Date().toISOString() })
     .eq("id", id);
+  if (error) throw new Error("Não deu pra atualizar o depoimento agora.");
   revalidatePath("/painel");
 }
 
@@ -40,12 +41,13 @@ async function updateOwnBusinessField(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) throw new Error("Sessão expirada. Recarrega a página e tenta de novo.");
 
-  await supabase
+  const { error } = await supabase
     .from("businesses")
     .update({ [field]: trimmed })
     .eq("owner_id", user.id);
+  if (error) throw new Error("Não deu pra salvar agora. Tenta de novo.");
 
   revalidatePath("/painel");
 }

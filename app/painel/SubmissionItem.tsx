@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 import { approveTestimonial, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { LoadingButton } from "./LoadingButton";
+import { DownloadButton } from "./DownloadButton";
 
 type Props = {
   testimonial: Testimonial & { screenshotUrl: string | null };
@@ -31,27 +34,57 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
+type ReviewAction = "approving" | "rejecting" | null;
+
 export default function SubmissionItem({ testimonial, businessName, defaultCardStyle }: Props) {
-  const [pending, startTransition] = useTransition();
+  const [reviewAction, setReviewAction] = useState<ReviewAction>(null);
 
   const [caption, setCaption] = useState(testimonial.caption ?? "");
   const [generatingCaption, setGeneratingCaption] = useState(false);
-  const [captionError, setCaptionError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copyingCaption, setCopyingCaption] = useState(false);
 
   const [selectedStyle, setSelectedStyle] = useState<CardStyleId>(
     isCardStyleId(defaultCardStyle) ? defaultCardStyle : "moderno",
   );
-  const [, startStyleTransition] = useTransition();
+  const [switchingStyle, setSwitchingStyle] = useState<CardStyleId | null>(null);
   const [cacheBust, setCacheBust] = useState(0);
 
-  function handleSelectStyle(styleId: CardStyleId) {
-    if (styleId === selectedStyle) return;
-    setSelectedStyle(styleId);
-    startStyleTransition(async () => {
+  async function handleApprove() {
+    setReviewAction("approving");
+    try {
+      await approveTestimonial(testimonial.id);
+      toast.success("Depoimento aprovado!");
+    } catch {
+      toast.error("Não deu pra aprovar agora. Tenta de novo.");
+    } finally {
+      setReviewAction(null);
+    }
+  }
+
+  async function handleReject() {
+    setReviewAction("rejecting");
+    try {
+      await rejectTestimonial(testimonial.id);
+      toast("Depoimento rejeitado.");
+    } catch {
+      toast.error("Não deu pra rejeitar agora. Tenta de novo.");
+    } finally {
+      setReviewAction(null);
+    }
+  }
+
+  async function handleSelectStyle(styleId: CardStyleId) {
+    if (styleId === selectedStyle || switchingStyle) return;
+    setSwitchingStyle(styleId);
+    try {
       await updateCardStyle(styleId);
+      setSelectedStyle(styleId);
       setCacheBust((v) => v + 1);
-    });
+    } catch {
+      toast.error("Não deu pra trocar o estilo agora. Tenta de novo.");
+    } finally {
+      setSwitchingStyle(null);
+    }
   }
 
   const cardUrl = (formato: "feed" | "stories" | "google") =>
@@ -59,10 +92,9 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
 
   async function handleGenerateCaption() {
     setGeneratingCaption(true);
-    setCaptionError("");
     const result = await generateCaption(testimonial.id);
     if (result.error) {
-      setCaptionError(result.error);
+      toast.error(result.error);
     } else if (result.caption) {
       setCaption(result.caption);
     }
@@ -70,9 +102,15 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
   }
 
   async function handleCopyCaption() {
-    await navigator.clipboard.writeText(caption);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopyingCaption(true);
+    try {
+      await navigator.clipboard.writeText(caption);
+      toast.success("Legenda copiada!");
+    } catch {
+      toast.error("Não deu pra copiar. Seleciona o texto manualmente.");
+    } finally {
+      setCopyingCaption(false);
+    }
   }
 
   return (
@@ -107,21 +145,25 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
               />
             )}
             <div className="flex gap-2">
-              <Button
+              <LoadingButton
                 className="flex-1 bg-green-600 text-white hover:bg-green-700"
-                disabled={pending}
-                onClick={() => startTransition(() => approveTestimonial(testimonial.id))}
+                loading={reviewAction === "approving"}
+                loadingText="Aprovando..."
+                disabled={reviewAction !== null}
+                onClick={handleApprove}
               >
                 ✓ Aprovar
-              </Button>
-              <Button
+              </LoadingButton>
+              <LoadingButton
                 variant="destructive"
                 className="flex-1"
-                disabled={pending}
-                onClick={() => startTransition(() => rejectTestimonial(testimonial.id))}
+                loading={reviewAction === "rejecting"}
+                loadingText="Rejeitando..."
+                disabled={reviewAction !== null}
+                onClick={handleReject}
               >
                 ✕ Rejeitar
-              </Button>
+              </LoadingButton>
             </div>
           </>
         )}
@@ -145,21 +187,28 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                     key={style.id}
                     type="button"
                     onClick={() => handleSelectStyle(style.id)}
-                    className="flex flex-col items-center gap-1.5"
+                    disabled={switchingStyle !== null}
+                    className="flex flex-col items-center gap-1.5 disabled:cursor-not-allowed"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
-                    <img
-                      src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
-                      alt={`Estilo ${style.label}`}
-                      width={64}
-                      height={64}
-                      className={cn(
-                        "size-16 rounded-lg object-cover ring-2 ring-offset-2 ring-offset-background transition-opacity",
-                        selectedStyle === style.id
-                          ? "ring-primary opacity-100"
-                          : "ring-transparent opacity-60",
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
+                      <img
+                        src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
+                        alt={`Estilo ${style.label}`}
+                        width={64}
+                        height={64}
+                        className={cn(
+                          "size-16 rounded-lg object-cover ring-2 ring-offset-2 ring-offset-background transition-opacity",
+                          selectedStyle === style.id
+                            ? "ring-primary opacity-100"
+                            : "ring-transparent opacity-60",
+                          switchingStyle === style.id && "opacity-40",
+                        )}
+                      />
+                      {switchingStyle === style.id && (
+                        <Loader2 className="absolute inset-0 m-auto size-5 animate-spin text-primary" />
                       )}
-                    />
+                    </div>
                     <span className="text-[11px] text-muted-foreground">{style.label}</span>
                   </button>
                 ))}
@@ -167,40 +216,47 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
             </div>
 
             <div className="flex gap-2">
-              <Button asChild variant="secondary" className="flex-1">
-                <a href={cardUrl("feed")} download>
-                  ⬇ Feed
-                </a>
-              </Button>
-              <Button asChild variant="secondary" className="flex-1">
-                <a href={cardUrl("stories")} download>
-                  ⬇ Stories
-                </a>
-              </Button>
-              <Button asChild variant="secondary" className="flex-1">
-                <a href={cardUrl("google")} download>
-                  ⬇ Google
-                </a>
-              </Button>
+              <DownloadButton
+                href={cardUrl("feed")}
+                fallbackFilename={`depoimento-${testimonial.client_name}-feed.png`}
+                className="flex-1"
+              >
+                ⬇ Feed
+              </DownloadButton>
+              <DownloadButton
+                href={cardUrl("stories")}
+                fallbackFilename={`depoimento-${testimonial.client_name}-stories.png`}
+                className="flex-1"
+              >
+                ⬇ Stories
+              </DownloadButton>
+              <DownloadButton
+                href={cardUrl("google")}
+                fallbackFilename={`depoimento-${testimonial.client_name}-google.png`}
+                className="flex-1"
+              >
+                ⬇ Google
+              </DownloadButton>
             </div>
 
             <p className="text-xs text-muted-foreground">
               Carrossel pro Instagram (baixe os 2 slides):
             </p>
             <div className="flex gap-2">
-              <Button asChild variant="secondary" className="flex-1">
-                <a href={cardUrl("feed")} download>
-                  ⬇ Slide 1 — depoimento
-                </a>
-              </Button>
-              <Button asChild variant="secondary" className="flex-1">
-                <a
-                  href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
-                  download
-                >
-                  ⬇ Slide 2 — convite
-                </a>
-              </Button>
+              <DownloadButton
+                href={cardUrl("feed")}
+                fallbackFilename={`depoimento-${testimonial.client_name}-feed.png`}
+                className="flex-1"
+              >
+                ⬇ Slide 1 — depoimento
+              </DownloadButton>
+              <DownloadButton
+                href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
+                fallbackFilename="carrossel-slide2.png"
+                className="flex-1"
+              >
+                ⬇ Slide 2 — convite
+              </DownloadButton>
             </div>
 
             <div className="space-y-2 pt-1">
@@ -213,42 +269,37 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                     onChange={(e) => setCaption(e.target.value)}
                     rows={4}
                   />
-                  {captionError && (
-                    <p className="text-sm text-destructive">{captionError}</p>
-                  )}
                   <div className="flex gap-2">
-                    <Button
+                    <LoadingButton
                       type="button"
                       variant="secondary"
                       className="flex-1"
+                      loading={copyingCaption}
                       onClick={handleCopyCaption}
                     >
-                      {copied ? "Copiado!" : "⬇ Copiar legenda"}
-                    </Button>
-                    <Button
+                      ⬇ Copiar legenda
+                    </LoadingButton>
+                    <LoadingButton
                       type="button"
                       variant="secondary"
                       className="flex-1"
+                      loading={generatingCaption}
+                      loadingText="Gerando..."
                       onClick={handleGenerateCaption}
-                      disabled={generatingCaption}
                     >
-                      {generatingCaption ? "Gerando..." : "↻ Gerar de novo"}
-                    </Button>
+                      ↻ Gerar de novo
+                    </LoadingButton>
                   </div>
                 </>
               ) : (
-                <>
-                  {captionError && (
-                    <p className="text-sm text-destructive">{captionError}</p>
-                  )}
-                  <Button
-                    type="button"
-                    onClick={handleGenerateCaption}
-                    disabled={generatingCaption}
-                  >
-                    {generatingCaption ? "Gerando..." : "✨ Gerar legenda com IA"}
-                  </Button>
-                </>
+                <LoadingButton
+                  type="button"
+                  loading={generatingCaption}
+                  loadingText="Gerando..."
+                  onClick={handleGenerateCaption}
+                >
+                  ✨ Gerar legenda com IA
+                </LoadingButton>
               )}
             </div>
           </>

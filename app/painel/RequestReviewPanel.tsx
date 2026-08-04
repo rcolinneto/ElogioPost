@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
 import { buildWhatsappMessage } from "@/lib/whatsapp";
 import { updateWhatsappTemplate } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "./LoadingButton";
 
 type Props = {
   businessName: string;
@@ -22,10 +24,10 @@ export default function RequestReviewPanel({
 }: Props) {
   const [clientName, setClientName] = useState("");
   const [message, setMessage] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   const [templateDraft, setTemplateDraft] = useState(template);
-  const [isPending, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   function handleGenerate(event: FormEvent) {
@@ -37,22 +39,33 @@ export default function RequestReviewPanel({
         link: reviewUrl,
       }),
     );
-    setCopied(false);
   }
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(message);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopying(true);
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Mensagem copiada!");
+    } catch {
+      toast.error("Não deu pra copiar. Seleciona o texto manualmente.");
+    } finally {
+      setCopying(false);
+    }
   }
 
-  function handleSaveTemplate(event: FormEvent) {
+  async function handleSaveTemplate(event: FormEvent) {
     event.preventDefault();
-    startTransition(async () => {
+    setSaving(true);
+    try {
       await updateWhatsappTemplate(templateDraft);
+      toast.success("Modelo de mensagem salvo!");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    });
+    } catch {
+      toast.error("Não deu pra salvar agora. Tenta de novo.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -77,9 +90,15 @@ export default function RequestReviewPanel({
           <div className="space-y-2">
             <Label htmlFor="generatedMessage">Mensagem pronta</Label>
             <Textarea id="generatedMessage" readOnly value={message} rows={5} />
-            <Button type="button" variant="secondary" className="w-full" onClick={handleCopy}>
-              {copied ? "Copiado!" : "Copiar mensagem"}
-            </Button>
+            <LoadingButton
+              type="button"
+              variant="secondary"
+              className="w-full"
+              loading={copying}
+              onClick={handleCopy}
+            >
+              Copiar mensagem
+            </LoadingButton>
           </div>
         )}
 
@@ -98,9 +117,9 @@ export default function RequestReviewPanel({
               trocados automaticamente pelo nome do cliente, o nome do seu
               negócio e o link de coleta.
             </p>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Salvando..." : saved ? "Salvo!" : "Salvar modelo"}
-            </Button>
+            <LoadingButton type="submit" loading={saving} loadingText="Salvando...">
+              {saved ? "Salvo!" : "Salvar modelo"}
+            </LoadingButton>
           </form>
         </details>
       </CardContent>
