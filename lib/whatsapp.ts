@@ -11,3 +11,9 @@ export function buildWhatsappMessage(
     .replaceAll("{{link}}", vars.link)
     .replaceAll("{{instagram}}", vars.instagram ? `@${vars.instagram}` : "");
 }
+
+// Link direto pro WhatsApp (wa.me só aceita dígitos, sem espaço/parênteses/traço)
+export function whatsappLink(number: string): string {
+  const digits = number.replace(/\D/g, "");
+  return `https://wa.me/${digits}`;
+}

@@ -1,5 +1,6 @@
 import type { CardStyle } from "./cardStyles";
 import { pickQuoteFontSize, preventOrphanWord } from "./cardText";
+import { getInitials } from "./text";
 
 export const CARD_SIZES = {
   feed: { width: 1080, height: 1080 },
@@ -79,13 +80,6 @@ const LAYOUT: Record<CardFormat, FormatLayout> = {
     bizFontSize: 24,
   },
 };
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 function Avatar({ style, layout, initials }: { style: CardStyle; layout: FormatLayout; initials: string }) {
   return (
