@@ -14,6 +14,7 @@ type Props = {
   businessName: string;
   carouselCtaText: string;
   defaultCardStyle: string;
+  googlePlaceId: string | null;
 };
 
 export default function ApprovalPanel({
@@ -22,6 +23,7 @@ export default function ApprovalPanel({
   businessName,
   carouselCtaText,
   defaultCardStyle,
+  googlePlaceId,
 }: Props) {
   return (
     <Tabs defaultValue="pendentes">
@@ -45,6 +47,7 @@ export default function ApprovalPanel({
               testimonial={t}
               businessName={businessName}
               defaultCardStyle={defaultCardStyle}
+              googlePlaceId={googlePlaceId}
             />
           ))
         )}
@@ -56,6 +59,7 @@ export default function ApprovalPanel({
           businessId={businessId}
           businessName={businessName}
           defaultCardStyle={defaultCardStyle}
+          googlePlaceId={googlePlaceId}
         />
       </TabsContent>
     </Tabs>

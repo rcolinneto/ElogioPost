@@ -110,6 +110,11 @@ export async function updateWhatsappNumber(number: string) {
   await updateOwnBusinessColumns({ whatsapp_number: cleaned || null });
 }
 
+export async function updateGooglePlaceId(placeId: string) {
+  const cleaned = placeId.trim();
+  await updateOwnBusinessColumns({ google_place_id: cleaned || null });
+}
+
 async function updateOwnBusinessAsset(
   column: "logo_path" | "qr_background_path",
   newPath: string | null,

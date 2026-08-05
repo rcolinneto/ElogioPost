@@ -18,6 +18,7 @@ export type Business = {
   whatsapp_number: string | null;
   qr_background_path: string | null;
   qr_band_style: "light" | "dark";
+  google_place_id: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   updateBrandColor,
+  updateGooglePlaceId,
   updateInstagramHandle,
   updateLogoPath,
   updateWhatsappNumber,
@@ -22,6 +23,7 @@ type Props = {
   brandColor: string | null;
   instagramHandle: string | null;
   whatsappNumber: string | null;
+  googlePlaceId: string | null;
 };
 
 export default function BrandKitPanel({
@@ -30,6 +32,7 @@ export default function BrandKitPanel({
   brandColor,
   instagramHandle,
   whatsappNumber,
+  googlePlaceId,
 }: Props) {
   const [color, setColor] = useState(brandColor ?? DEFAULT_COLOR);
   const [savingColor, setSavingColor] = useState(false);
@@ -39,6 +42,9 @@ export default function BrandKitPanel({
 
   const [whatsapp, setWhatsapp] = useState(whatsappNumber ?? "");
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
+
+  const [placeId, setPlaceId] = useState(googlePlaceId ?? "");
+  const [savingPlaceId, setSavingPlaceId] = useState(false);
 
   async function handleSaveColor(event: FormEvent) {
     event.preventDefault();
@@ -89,6 +95,19 @@ export default function BrandKitPanel({
       toast.error("Não deu pra salvar agora. Tenta de novo.");
     } finally {
       setSavingWhatsapp(false);
+    }
+  }
+
+  async function handleSavePlaceId(event: FormEvent) {
+    event.preventDefault();
+    setSavingPlaceId(true);
+    try {
+      await updateGooglePlaceId(placeId);
+      toast.success("Place ID salvo!");
+    } catch {
+      toast.error("Não deu pra salvar agora. Tenta de novo.");
+    } finally {
+      setSavingPlaceId(false);
     }
   }
 
@@ -177,6 +196,32 @@ export default function BrandKitPanel({
               </LoadingButton>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-2">
+          <form onSubmit={handleSavePlaceId} className="space-y-2">
+            <Label htmlFor="placeId">Place ID do Google Negócio (opcional)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="placeId"
+                type="text"
+                value={placeId}
+                onChange={(e) => setPlaceId(e.target.value)}
+                placeholder="ChIJ..."
+              />
+              <LoadingButton type="submit" loading={savingPlaceId} loadingText="Salvando...">
+                Salvar
+              </LoadingButton>
+            </div>
+          </form>
+          <p className="text-xs text-muted-foreground">
+            Preenchendo, depoimentos aprovados de 4 ou 5 estrelas ganham um link pronto (só pra
+            você) convidando aquele cliente a repetir a avaliação no Google. Pra achar o seu,
+            procure por &quot;Place ID Finder&quot; no Google — ele não fica visível na página do
+            seu negócio.
+          </p>
         </CardContent>
       </Card>
     </div>

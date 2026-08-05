@@ -32,9 +32,15 @@ type Props = {
   businessId: string;
   businessName: string;
   defaultCardStyle: string;
+  googlePlaceId: string | null;
 };
 
-export default function ApprovedLibrary({ businessId, businessName, defaultCardStyle }: Props) {
+export default function ApprovedLibrary({
+  businessId,
+  businessName,
+  defaultCardStyle,
+  googlePlaceId,
+}: Props) {
   const [query, setQuery] = useState("");
   const [rating, setRating] = useState(0);
   const [sortOrder, setSortOrder] = useState<SortOrder>("recent");
@@ -186,6 +192,7 @@ export default function ApprovedLibrary({ businessId, businessName, defaultCardS
               testimonial={t}
               businessName={businessName}
               defaultCardStyle={defaultCardStyle}
+              googlePlaceId={googlePlaceId}
             />
           ))}
           {hasMore && (

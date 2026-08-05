@@ -105,6 +105,7 @@ export default async function PainelPage() {
         businessName={business.name}
         carouselCtaText={business.carousel_cta_text}
         defaultCardStyle={business.card_style}
+        googlePlaceId={business.google_place_id}
       />
     </>
   );

@@ -18,6 +18,7 @@ export default async function MarcaPage() {
         brandColor={business.brand_color}
         instagramHandle={business.instagram_handle}
         whatsappNumber={business.whatsapp_number}
+        googlePlaceId={business.google_place_id}
       />
     </>
   );

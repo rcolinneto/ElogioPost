@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Check, Loader2, Star, X } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
+import { googleReviewLink } from "@/lib/google";
 import { approveTestimonial, logCardGeneration, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,11 +15,13 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { LoadingButton } from "./LoadingButton";
 import { DownloadButton } from "./DownloadButton";
+import CopyLinkButton from "./CopyLinkButton";
 
 type Props = {
   testimonial: Testimonial & { screenshotUrl: string | null };
   businessName: string;
   defaultCardStyle: string;
+  googlePlaceId: string | null;
 };
 
 function isCardStyleId(value: string): value is CardStyleId {
@@ -40,7 +43,12 @@ function Stars({ rating }: { rating: number }) {
 
 type ReviewAction = "approving" | "rejecting" | null;
 
-export default function SubmissionItem({ testimonial, businessName, defaultCardStyle }: Props) {
+export default function SubmissionItem({
+  testimonial,
+  businessName,
+  defaultCardStyle,
+  googlePlaceId,
+}: Props) {
   const [reviewAction, setReviewAction] = useState<ReviewAction>(null);
 
   const [caption, setCaption] = useState(testimonial.caption ?? "");
@@ -320,6 +328,17 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 </LoadingButton>
               )}
             </div>
+
+            {googlePlaceId && testimonial.rating >= 4 && (
+              <div className="space-y-2 border-t pt-3">
+                <Label>Pedir essa avaliação no Google também</Label>
+                <p className="text-xs text-muted-foreground">
+                  Link só pra você — copia e manda pra {testimonial.client_name} convidando a
+                  repetir a avaliação por lá.
+                </p>
+                <CopyLinkButton url={googleReviewLink(googlePlaceId)} />
+              </div>
+            )}
           </>
         )}
       </CardContent>
