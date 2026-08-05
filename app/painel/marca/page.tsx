@@ -10,7 +10,7 @@ export default async function MarcaPage() {
     <>
       <PageHeader
         title="Marca"
-        description="Preencha uma vez e sua logo, cor e contatos aparecem automaticamente nos cards, na plaquinha de QR e na mensagem de depoimento. Tudo opcional."
+        description="Preencha uma vez e sua logo, cor e contatos aparecem automaticamente nos cards, na plaquinha de QR, na página de coleta de depoimentos e na mensagem de depoimento. Tudo opcional."
       />
       <BrandKitPanel
         businessId={business.id}
