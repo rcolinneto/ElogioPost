@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { buildWhatsappMessage } from "@/lib/whatsapp";
+import { Copy, MessageCircle } from "lucide-react";
+import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 import { updateWhatsappTemplate } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,9 @@ export default function RequestReviewPanel({
   instagramHandle,
 }: Props) {
   const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
   const [message, setMessage] = useState("");
+  const [generatedPhone, setGeneratedPhone] = useState("");
   const [copying, setCopying] = useState(false);
 
   const [templateDraft, setTemplateDraft] = useState(template);
@@ -42,6 +45,7 @@ export default function RequestReviewPanel({
         instagram: instagramHandle,
       }),
     );
+    setGeneratedPhone(clientPhone.trim());
   }
 
   async function handleCopy() {
@@ -84,6 +88,17 @@ export default function RequestReviewPanel({
             onChange={(e) => setClientName(e.target.value)}
             placeholder="Ex: Mariana"
           />
+          <Label htmlFor="clientPhone">WhatsApp do cliente (opcional)</Label>
+          <Input
+            id="clientPhone"
+            type="tel"
+            value={clientPhone}
+            onChange={(e) => setClientPhone(e.target.value)}
+            placeholder="(11) 99999-9999"
+          />
+          <p className="text-xs text-muted-foreground">
+            Preenchendo, você abre a conversa já com a mensagem pronta num toque só.
+          </p>
           <Button type="submit" className="w-full">
             Gerar mensagem
           </Button>
@@ -93,15 +108,28 @@ export default function RequestReviewPanel({
           <div className="space-y-2">
             <Label htmlFor="generatedMessage">Mensagem pronta</Label>
             <Textarea id="generatedMessage" readOnly value={message} rows={5} />
-            <LoadingButton
-              type="button"
-              variant="secondary"
-              className="w-full"
-              loading={copying}
-              onClick={handleCopy}
-            >
-              Copiar mensagem
-            </LoadingButton>
+            <div className="flex gap-2">
+              {generatedPhone && (
+                <Button asChild className="flex-1">
+                  <a
+                    href={whatsappLink(generatedPhone, message)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle /> Abrir no WhatsApp
+                  </a>
+                </Button>
+              )}
+              <LoadingButton
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                loading={copying}
+                onClick={handleCopy}
+              >
+                <Copy /> Copiar mensagem
+              </LoadingButton>
+            </div>
           </div>
         )}
 
