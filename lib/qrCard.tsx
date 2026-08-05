@@ -20,6 +20,13 @@ type Props = {
   bandColor?: string;
   accentColor?: string;
   logoUrl?: string | null;
+  // Fonte de destaque/apoio do estilo de card escolhido — a plaquinha usa
+  // essas fontes mesmo sem herdar o resto do visual do estilo (fundo/cor de
+  // texto continuam fixos), então vêm como prop própria em vez de só via
+  // `style`, que só é passado (com fundo/cor incluídos) pro slide do
+  // carrossel.
+  displayFont?: string;
+  supportFont?: string;
 };
 
 export function QrCtaCard({
@@ -34,12 +41,12 @@ export function QrCtaCard({
   bandColor = "#ffffff",
   accentColor,
   logoUrl,
+  displayFont = style?.displayFont ?? "sans-serif",
+  supportFont = style?.supportFont ?? "sans-serif",
 }: Props) {
   const background = style?.background ?? BRAND_GRADIENT;
   const textColor = style?.textColor ?? "#ffffff";
   const mutedTextColor = style?.mutedTextColor ?? "rgba(255,255,255,0.9)";
-  const displayFont = style?.displayFont ?? "sans-serif";
-  const supportFont = style?.supportFont ?? "sans-serif";
 
   return (
     <div
@@ -123,6 +130,8 @@ export function QrCtaCard({
           style={{
             display: "flex",
             width: "100%",
+            justifyContent: "center",
+            textAlign: "center",
             fontFamily: displayFont,
             fontSize: 56,
             fontWeight: 700,
@@ -139,20 +148,36 @@ export function QrCtaCard({
             background: bandColor,
             padding: 32,
             borderRadius: 24,
-            border: accentColor ? `4px solid ${accentColor}` : undefined,
+            // next/og (satori) tropeça se `border` for setado como
+            // `undefined` explícito (em vez de simplesmente ausente) — por
+            // isso a propriedade só entra no objeto quando há accentColor.
+            ...(accentColor ? { border: `4px solid ${accentColor}` } : {}),
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
           <img src={qrDataUrl} alt="" width={qrSize} height={qrSize} style={{ display: "flex" }} />
         </div>
 
-        <div style={{ display: "flex", fontSize: 28, color: mutedTextColor, marginTop: 40 }}>
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            justifyContent: "center",
+            textAlign: "center",
+            fontSize: 28,
+            color: mutedTextColor,
+            marginTop: 40,
+          }}
+        >
           aponte a câmera do celular pro QR code
         </div>
 
         <div
           style={{
             display: "flex",
+            width: "100%",
+            justifyContent: "center",
+            textAlign: "center",
             fontFamily: supportFont,
             fontSize: 40,
             fontWeight: 700,

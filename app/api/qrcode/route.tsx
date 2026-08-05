@@ -48,10 +48,13 @@ export async function GET(request: NextRequest) {
       ? `carrossel-slide2-${business.slug}.png`
       : `plaquinha-${business.slug}.png`;
 
-  const cardStyle =
-    formato === "carrossel"
-      ? resolveCardStyle(request.nextUrl.searchParams.get("estilo") ?? business.card_style)
-      : undefined;
+  // O estilo escolhido pelo negócio resolve pros dois formatos agora — o
+  // slide do carrossel herda o visual inteiro (fundo/cor/fonte), a
+  // plaquinha só as fontes (fundo/cor dela continuam fixos, ver QrCtaCard).
+  const resolvedStyle = resolveCardStyle(
+    request.nextUrl.searchParams.get("estilo") ?? business.card_style,
+  );
+  const cardStyle = formato === "carrossel" ? resolvedStyle : undefined;
 
   // Bucket público — não precisa de signed URL, só monta o link.
   const supabase = await createClient();
@@ -81,10 +84,8 @@ export async function GET(request: NextRequest) {
       : { dark: "#000000ff", light: "#ffffffff" },
   });
 
-  // Fonte customizada só entra quando um estilo de card foi resolvido
-  // (carrossel) — sem ele, o texto usa sans-serif normal, e carregar as
-  // fontes seria trabalho à toa.
-  const fonts = cardStyle ? await loadCardFonts() : undefined;
+  // Os dois formatos usam fonte customizada agora.
+  const fonts = await loadCardFonts();
 
   return new ImageResponse(
     (
@@ -96,6 +97,8 @@ export async function GET(request: NextRequest) {
         businessName={business.name}
         qrSize={Math.round(size * 0.42)}
         style={cardStyle}
+        displayFont={resolvedStyle.displayFont}
+        supportFont={resolvedStyle.supportFont}
         backgroundImageUrl={backgroundImageUrl}
         bandColor={bandColor}
         accentColor={accentColor}
