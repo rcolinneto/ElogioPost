@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentBusiness } from "@/lib/business";
 import { generateCaption } from "./captionActions";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 
@@ -132,4 +133,24 @@ export async function updateQrBackgroundPath(newPath: string | null, oldPath: st
 export async function updateQrBandStyle(bandStyle: "light" | "dark") {
   if (bandStyle !== "light" && bandStyle !== "dark") return;
   await updateOwnBusinessColumns({ qr_band_style: bandStyle });
+}
+
+// Registro "melhor esforço" pra estatística de cards gerados no dashboard —
+// nunca lança erro, porque o download em si já aconteceu com sucesso do
+// ponto de vista de quem clicou; uma falha aqui não deve virar um toast de
+// erro sobre uma ação que já deu certo.
+export async function logCardGeneration(testimonialId: string | null, format: string) {
+  try {
+    const business = await getCurrentBusiness();
+    if (!business) return;
+
+    const supabase = await createClient();
+    await supabase.from("card_generations").insert({
+      business_id: business.id,
+      testimonial_id: testimonialId,
+      format,
+    });
+  } catch {
+    // ignorado de propósito
+  }
 }

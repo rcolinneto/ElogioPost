@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
-import { approveTestimonial, rejectTestimonial, updateCardStyle } from "./actions";
+import { approveTestimonial, logCardGeneration, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -220,6 +220,7 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 href={cardUrl("feed")}
                 fallbackFilename={`depoimento-${testimonial.client_name}-feed.png`}
                 className="flex-1"
+                onDownloaded={() => logCardGeneration(testimonial.id, "feed")}
               >
                 ⬇ Feed
               </DownloadButton>
@@ -227,6 +228,7 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 href={cardUrl("stories")}
                 fallbackFilename={`depoimento-${testimonial.client_name}-stories.png`}
                 className="flex-1"
+                onDownloaded={() => logCardGeneration(testimonial.id, "stories")}
               >
                 ⬇ Stories
               </DownloadButton>
@@ -234,6 +236,7 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 href={cardUrl("google")}
                 fallbackFilename={`depoimento-${testimonial.client_name}-google.png`}
                 className="flex-1"
+                onDownloaded={() => logCardGeneration(testimonial.id, "google")}
               >
                 ⬇ Google
               </DownloadButton>
@@ -247,6 +250,7 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 href={cardUrl("feed")}
                 fallbackFilename={`depoimento-${testimonial.client_name}-feed.png`}
                 className="flex-1"
+                onDownloaded={() => logCardGeneration(testimonial.id, "carrossel-slide1")}
               >
                 ⬇ Slide 1 — depoimento
               </DownloadButton>
@@ -254,6 +258,7 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 href={`/api/qrcode?formato=carrossel&estilo=${selectedStyle}&v=${cacheBust}`}
                 fallbackFilename="carrossel-slide2.png"
                 className="flex-1"
+                onDownloaded={() => logCardGeneration(testimonial.id, "carrossel-slide2")}
               >
                 ⬇ Slide 2 — convite
               </DownloadButton>

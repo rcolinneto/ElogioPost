@@ -17,6 +17,10 @@ type Props = {
   className?: string;
   variant?: React.ComponentProps<typeof LoadingButton>["variant"];
   children: React.ReactNode;
+  // Chamado depois de um download com sucesso — pra quem quiser registrar a
+  // ação (ex: estatística de cards gerados). Nunca deve travar nem falhar
+  // visivelmente o download em si; qualquer erro aqui é silencioso.
+  onDownloaded?: () => void;
 };
 
 // Baixar um card/QR code dispara a geração da imagem no servidor (pode levar
@@ -30,6 +34,7 @@ export function DownloadButton({
   className,
   variant = "secondary",
   children,
+  onDownloaded,
 }: Props) {
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +53,7 @@ export function DownloadButton({
       link.click();
       link.remove();
       URL.revokeObjectURL(blobUrl);
+      onDownloaded?.();
     } catch {
       toast.error(errorMessage);
     } finally {
