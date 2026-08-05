@@ -16,6 +16,7 @@ type Props = {
   errorMessage?: string;
   className?: string;
   variant?: React.ComponentProps<typeof LoadingButton>["variant"];
+  size?: React.ComponentProps<typeof LoadingButton>["size"];
   children: React.ReactNode;
   // Chamado depois de um download com sucesso — pra quem quiser registrar a
   // ação (ex: estatística de cards gerados). Nunca deve travar nem falhar
@@ -23,16 +24,18 @@ type Props = {
   onDownloaded?: () => void;
 };
 
-// Baixar um card/QR code dispara a geração da imagem no servidor (pode levar
-// alguns segundos) — por isso não é um <a href download> simples: usamos
-// fetch+blob pra poder mostrar o spinner enquanto gera e avisar com toast se
-// falhar (o navegador não expõe esse ciclo pra uma navegação de download comum).
+// Baixar um card/QR code (ou exportar um CSV) dispara trabalho no servidor
+// que pode levar alguns segundos — por isso não é um <a href download>
+// simples: usamos fetch+blob pra poder mostrar o spinner enquanto gera e
+// avisar com toast se falhar (o navegador não expõe esse ciclo pra uma
+// navegação de download comum).
 export function DownloadButton({
   href,
   fallbackFilename,
-  errorMessage = "Não deu pra baixar a imagem. Tenta de novo.",
+  errorMessage = "Não deu pra baixar o arquivo. Tenta de novo.",
   className,
   variant = "secondary",
+  size,
   children,
   onDownloaded,
 }: Props) {
@@ -65,6 +68,7 @@ export function DownloadButton({
     <LoadingButton
       type="button"
       variant={variant}
+      size={size}
       className={className}
       loading={loading}
       loadingText="Baixando..."

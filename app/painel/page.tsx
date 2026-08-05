@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { BadgeCheck, Download, MessagesSquare, Star } from "lucide-react";
+import { BadgeCheck, Download, FileDown, MessagesSquare, Star } from "lucide-react";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
 import { getBusinessStats } from "@/lib/stats";
@@ -8,6 +8,7 @@ import type { Testimonial } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "./PageHeader";
 import { StatTile } from "./StatTile";
+import { DownloadButton } from "./DownloadButton";
 import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
 
@@ -52,7 +53,7 @@ export default async function PainelPage() {
         description="Aprove os depoimentos recebidos e baixe os cards prontos pra postar."
       />
 
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile
           icon={MessagesSquare}
           label="Recebidos"
@@ -74,6 +75,18 @@ export default async function PainelPage() {
           value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "—"}
           accent
         />
+      </div>
+
+      <div className="mb-6 flex justify-end">
+        <DownloadButton
+          href="/api/testimonials/export"
+          fallbackFilename={`depoimentos-${business.slug}.csv`}
+          errorMessage="Não deu pra exportar agora. Tenta de novo."
+          variant="outline"
+          size="sm"
+        >
+          <FileDown /> Exportar CSV
+        </DownloadButton>
       </div>
 
       <Card className="mb-6">
