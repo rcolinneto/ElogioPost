@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Check, Loader2, Star, X } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 import { approveTestimonial, logCardGeneration, rejectTestimonial, updateCardStyle } from "./actions";
@@ -27,10 +27,14 @@ function isCardStyleId(value: string): value is CardStyleId {
 
 function Stars({ rating }: { rating: number }) {
   return (
-    <span className="text-sm text-amber-500">
-      {"★".repeat(rating)}
-      <span className="text-muted-foreground/40">{"★".repeat(5 - rating)}</span>
-    </span>
+    <div className="flex gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={i < rating ? "size-4 fill-amber-400 text-amber-400" : "size-4 text-muted-foreground/30"}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -113,14 +117,17 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
     }
   }
 
+  const submittedAt = new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(testimonial.created_at));
+
   return (
     <Card>
       <CardContent className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-0.5">
-            <p className="text-sm font-semibold">{testimonial.client_name}</p>
-            <Stars rating={testimonial.rating} />
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <Stars rating={testimonial.rating} />
           <Badge
             className={
               testimonial.status === "pending"
@@ -128,11 +135,17 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
                 : "bg-green-100 text-green-800"
             }
           >
-            {testimonial.status === "pending" ? "pendente" : "aprovado"}
+            {testimonial.status === "pending" ? "Pendente" : "Aprovado"}
           </Badge>
         </div>
 
-        <p className="text-sm text-foreground/80">&quot;{testimonial.body}&quot;</p>
+        <p className="text-sm text-muted-foreground">
+          {testimonial.client_name} · {submittedAt}
+        </p>
+
+        <p className="text-base leading-relaxed text-foreground">
+          &quot;{testimonial.body}&quot;
+        </p>
 
         {testimonial.status === "pending" && (
           <>
@@ -146,23 +159,23 @@ export default function SubmissionItem({ testimonial, businessName, defaultCardS
             )}
             <div className="flex gap-2">
               <LoadingButton
-                className="flex-1 bg-green-600 text-white hover:bg-green-700"
+                className="flex-1"
                 loading={reviewAction === "approving"}
                 loadingText="Aprovando..."
                 disabled={reviewAction !== null}
                 onClick={handleApprove}
               >
-                ✓ Aprovar
+                <Check /> Aprovar
               </LoadingButton>
               <LoadingButton
-                variant="destructive"
+                variant="outline"
                 className="flex-1"
                 loading={reviewAction === "rejecting"}
                 loadingText="Rejeitando..."
                 disabled={reviewAction !== null}
                 onClick={handleReject}
               >
-                ✕ Rejeitar
+                <X /> Rejeitar
               </LoadingButton>
             </div>
           </>

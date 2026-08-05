@@ -1,9 +1,13 @@
 import { headers } from "next/headers";
+import { BadgeCheck, Download, MessagesSquare, Star } from "lucide-react";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
+import { getBusinessStats } from "@/lib/stats";
+import { formatCompactNumber } from "@/lib/text";
 import type { Testimonial } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "./PageHeader";
+import { StatTile } from "./StatTile";
 import ApprovalPanel from "./ApprovalPanel";
 import CopyLinkButton from "./CopyLinkButton";
 
@@ -16,7 +20,7 @@ export default async function PainelPage() {
   // Só pendentes são carregados aqui (fila de trabalho, sempre pequena).
   // Aprovados vira uma biblioteca pesquisável, buscada sob demanda pelo
   // próprio ApprovedLibrary (busca/filtro/paginação client-side).
-  const [{ data: testimonials }, headersList] = await Promise.all([
+  const [{ data: testimonials }, headersList, stats] = await Promise.all([
     supabase
       .from("testimonials")
       .select("*")
@@ -24,6 +28,7 @@ export default async function PainelPage() {
       .eq("status", "pending")
       .order("created_at", { ascending: false }),
     headers(),
+    getBusinessStats(business.id),
   ]);
 
   const pendingWithUrls = await Promise.all(
@@ -46,6 +51,30 @@ export default async function PainelPage() {
         title="Depoimentos"
         description="Aprove os depoimentos recebidos e baixe os cards prontos pra postar."
       />
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatTile
+          icon={MessagesSquare}
+          label="Recebidos"
+          value={formatCompactNumber(stats.totalTestimonials)}
+        />
+        <StatTile
+          icon={BadgeCheck}
+          label="Aprovados"
+          value={formatCompactNumber(stats.approvedTestimonials)}
+        />
+        <StatTile
+          icon={Download}
+          label="Cards gerados"
+          value={formatCompactNumber(stats.cardsGenerated)}
+        />
+        <StatTile
+          icon={Star}
+          label="Nota média"
+          value={stats.averageRating > 0 ? stats.averageRating.toFixed(1) : "—"}
+          accent
+        />
+      </div>
 
       <Card className="mb-6">
         <CardContent className="space-y-2">
