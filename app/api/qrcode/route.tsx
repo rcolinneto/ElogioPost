@@ -2,6 +2,7 @@ import QRCode from "qrcode";
 import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
+import { createClient } from "@/lib/supabase/server";
 import { QrCtaCard } from "@/lib/qrCard";
 import { resolveCardStyle } from "@/lib/cardStyles";
 import { loadCardFonts } from "@/lib/cardFonts";
@@ -47,16 +48,42 @@ export async function GET(request: NextRequest) {
       ? `carrossel-slide2-${business.slug}.png`
       : `plaquinha-${business.slug}.png`;
 
-  const qrDataUrl = await QRCode.toDataURL(reviewUrl, {
-    width: Math.round(size * 0.52),
-    margin: 1,
-    color: { dark: "#000000ff", light: "#ffffffff" },
-  });
-
   const cardStyle =
     formato === "carrossel"
       ? resolveCardStyle(request.nextUrl.searchParams.get("estilo") ?? business.card_style)
       : undefined;
+
+  // Bucket público — não precisa de signed URL, só monta o link.
+  const supabase = await createClient();
+  const publicUrl = (path: string) =>
+    supabase.storage.from("business-assets").getPublicUrl(path).data.publicUrl;
+
+  const logoUrl = business.logo_path ? publicUrl(business.logo_path) : null;
+
+  // Foto de fundo + faixa atrás do QR só existem na plaquinha (não no slide
+  // do carrossel, que já tem seu próprio visual pelo estilo do card).
+  const backgroundImageUrl =
+    formato === "plaquinha" && business.qr_background_path
+      ? publicUrl(business.qr_background_path)
+      : null;
+  const bandIsDark = formato === "plaquinha" && !!backgroundImageUrl && business.qr_band_style === "dark";
+  const bandColor = bandIsDark ? "#000000" : "#ffffff";
+
+  const accentColor = business.brand_color ?? cardStyle?.accentColor;
+
+  const qrDataUrl = await QRCode.toDataURL(reviewUrl, {
+    width: Math.round(size * 0.52),
+    margin: 1,
+    // QR com fundo escuro precisa de módulos claros — direto sobre uma
+    // faixa preta, um QR preto-no-preto simplesmente não escaneia.
+    color: bandIsDark
+      ? { dark: "#ffffffff", light: "#000000ff" }
+      : { dark: "#000000ff", light: "#ffffffff" },
+  });
+
+  // Fonte customizada só entra quando um estilo de card foi resolvido
+  // (carrossel) — sem ele, o texto usa sans-serif normal, e carregar as
+  // fontes seria trabalho à toa.
   const fonts = cardStyle ? await loadCardFonts() : undefined;
 
   return new ImageResponse(
@@ -69,6 +96,10 @@ export async function GET(request: NextRequest) {
         businessName={business.name}
         qrSize={Math.round(size * 0.42)}
         style={cardStyle}
+        backgroundImageUrl={backgroundImageUrl}
+        bandColor={bandColor}
+        accentColor={accentColor}
+        logoUrl={logoUrl}
       />
     ),
     {

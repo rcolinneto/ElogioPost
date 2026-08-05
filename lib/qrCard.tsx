@@ -10,8 +10,16 @@ type Props = {
   qrSize?: number;
   // Só o slide 2 do carrossel (/api/qrcode?formato=carrossel) recebe o
   // estilo escolhido pelo dono — a plaquinha de balcão
-  // (/api/qrcode?formato=plaquinha) mantém sempre o visual fixo da marca.
+  // (/api/qrcode?formato=plaquinha) mantém sempre o visual fixo da marca,
+  // exceto pelo que vem do Brand Kit (logo/cor/foto), que vale pros dois.
   style?: CardStyle;
+  // Só a plaquinha: foto de fundo opcional do negócio, com a faixa sólida
+  // (clara ou escura, escolhida pelo dono) atrás do QR pra garantir
+  // contraste suficiente — QR direto sobre a foto pode falhar na leitura.
+  backgroundImageUrl?: string | null;
+  bandColor?: string;
+  accentColor?: string;
+  logoUrl?: string | null;
 };
 
 export function QrCtaCard({
@@ -22,71 +30,137 @@ export function QrCtaCard({
   businessName,
   qrSize = 500,
   style,
+  backgroundImageUrl,
+  bandColor = "#ffffff",
+  accentColor,
+  logoUrl,
 }: Props) {
   const background = style?.background ?? BRAND_GRADIENT;
   const textColor = style?.textColor ?? "#ffffff";
   const mutedTextColor = style?.mutedTextColor ?? "rgba(255,255,255,0.9)";
   const displayFont = style?.displayFont ?? "sans-serif";
   const supportFont = style?.supportFont ?? "sans-serif";
-  const accentColor = style?.accentColor ?? "transparent";
 
   return (
     <div
       style={{
+        position: "relative",
         width,
         height,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: 90,
-        background,
-        color: textColor,
         fontFamily: supportFont,
       }}
     >
+      {backgroundImageUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
+          <img
+            src={backgroundImageUrl}
+            alt=""
+            width={width}
+            height={height}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width,
+              height,
+              objectFit: "cover",
+              display: "flex",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width,
+              height,
+              display: "flex",
+              background: "rgba(0, 0, 0, 0.45)",
+            }}
+          />
+        </>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width,
+            height,
+            display: "flex",
+            background,
+          }}
+        />
+      )}
+
       <div
         style={{
-          display: "flex",
+          position: "relative",
           width: "100%",
-          fontFamily: displayFont,
-          fontSize: 56,
-          fontWeight: 700,
-          lineHeight: 1.3,
-        }}
-      >
-        {headline}
-      </div>
-
-      <div
-        style={{
+          height: "100%",
           display: "flex",
-          marginTop: 50,
-          background: "white",
-          padding: 32,
-          borderRadius: 24,
-          border: style ? `4px solid ${accentColor}` : undefined,
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: 90,
+          color: textColor,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
-        <img src={qrDataUrl} alt="" width={qrSize} height={qrSize} style={{ display: "flex" }} />
-      </div>
+        {logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image
+          <img
+            src={logoUrl}
+            alt=""
+            height={80}
+            style={{ display: "flex", maxHeight: 80, maxWidth: 260, objectFit: "contain", marginBottom: 36 }}
+          />
+        )}
 
-      <div style={{ display: "flex", fontSize: 28, color: mutedTextColor, marginTop: 40 }}>
-        aponte a câmera do celular pro QR code
-      </div>
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            fontFamily: displayFont,
+            fontSize: 56,
+            fontWeight: 700,
+            lineHeight: 1.3,
+          }}
+        >
+          {headline}
+        </div>
 
-      <div
-        style={{
-          display: "flex",
-          fontFamily: supportFont,
-          fontSize: 40,
-          fontWeight: 700,
-          marginTop: 60,
-        }}
-      >
-        {businessName}
+        <div
+          style={{
+            display: "flex",
+            marginTop: 50,
+            background: bandColor,
+            padding: 32,
+            borderRadius: 24,
+            border: accentColor ? `4px solid ${accentColor}` : undefined,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
+          <img src={qrDataUrl} alt="" width={qrSize} height={qrSize} style={{ display: "flex" }} />
+        </div>
+
+        <div style={{ display: "flex", fontSize: 28, color: mutedTextColor, marginTop: 40 }}>
+          aponte a câmera do celular pro QR code
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            fontFamily: supportFont,
+            fontSize: 40,
+            fontWeight: 700,
+            marginTop: 60,
+          }}
+        >
+          {businessName}
+        </div>
       </div>
     </div>
   );

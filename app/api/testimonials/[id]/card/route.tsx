@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
-import { resolveCardStyle } from "@/lib/cardStyles";
+import { resolveCardStyle, applyBrandColor } from "@/lib/cardStyles";
 import { loadCardFonts } from "@/lib/cardFonts";
 import { renderTestimonialCard, CARD_SIZES, type CardFormat } from "@/lib/cardRender";
 
@@ -45,8 +45,13 @@ export async function GET(
   }
 
   const styleParam = request.nextUrl.searchParams.get("estilo");
-  const style = resolveCardStyle(styleParam ?? business.card_style);
+  const baseStyle = resolveCardStyle(styleParam ?? business.card_style);
+  const style = applyBrandColor(baseStyle, business.brand_color);
   const fonts = await loadCardFonts();
+
+  const logoUrl = business.logo_path
+    ? supabase.storage.from("business-assets").getPublicUrl(business.logo_path).data.publicUrl
+    : null;
 
   return new ImageResponse(
     renderTestimonialCard(
@@ -57,6 +62,7 @@ export async function GET(
         rating: testimonial.rating,
         body: testimonial.body,
         businessName: business.name,
+        logoUrl,
       },
       backgroundUrl,
     ),

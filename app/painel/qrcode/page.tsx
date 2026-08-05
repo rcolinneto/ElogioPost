@@ -12,7 +12,12 @@ export default async function QrCodePage() {
         title="QR Code"
         description="Baixe a plaquinha pra deixar no balcão do seu negócio."
       />
-      <QrCodePanel headline={business.qr_headline} />
+      <QrCodePanel
+        businessId={business.id}
+        headline={business.qr_headline}
+        qrBackgroundPath={business.qr_background_path}
+        qrBandStyle={business.qr_band_style}
+      />
     </>
   );
 }

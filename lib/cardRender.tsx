@@ -17,6 +17,7 @@ export type CardData = {
   rating: number;
   body: string;
   businessName: string;
+  logoUrl?: string | null;
 };
 
 type FormatLayout = {
@@ -117,7 +118,7 @@ function Stars({ style, layout, rating }: { style: CardStyle; layout: FormatLayo
         // eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image
         <img
           key={i}
-          src={style.starIcon}
+          src={style.starIcon(style.accentColor)}
           width={layout.starSize}
           height={layout.starSize}
           alt=""
@@ -170,16 +171,32 @@ function NameBlock({
       >
         {data.clientName}
       </div>
-      <div
-        style={{
-          display: "flex",
-          fontFamily: style.supportFont,
-          fontWeight: bizWeight,
-          fontSize: layout.bizFontSize,
-          color: style.mutedTextColor,
-        }}
-      >
-        via {data.businessName}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {data.logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image
+          <img
+            src={data.logoUrl}
+            width={Math.round(layout.bizFontSize * 1.3)}
+            height={Math.round(layout.bizFontSize * 1.3)}
+            alt=""
+            style={{
+              display: "flex",
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
+        )}
+        <div
+          style={{
+            display: "flex",
+            fontFamily: style.supportFont,
+            fontWeight: bizWeight,
+            fontSize: layout.bizFontSize,
+            color: style.mutedTextColor,
+          }}
+        >
+          via {data.businessName}
+        </div>
       </div>
     </div>
   );
@@ -211,7 +228,7 @@ function EditorialLayout({
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
         <img
-          src={style.quoteIcon}
+          src={style.quoteIcon(style.accentColor)}
           width={layout.decorativeIconSize}
           height={layout.decorativeIconSize}
           alt=""
@@ -284,7 +301,7 @@ function CenteredStackLayout({
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- gerado pelo next/og, não é o next/image */}
         <img
-          src={style.quoteIcon}
+          src={style.quoteIcon(style.accentColor)}
           width={layout.badgeIconSize}
           height={layout.badgeIconSize}
           alt=""

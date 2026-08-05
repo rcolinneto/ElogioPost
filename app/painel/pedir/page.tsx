@@ -22,6 +22,7 @@ export default async function PedirDepoimentoPage() {
         businessName={business.name}
         reviewUrl={collectionUrl}
         template={business.whatsapp_template}
+        instagramHandle={business.instagram_handle}
       />
     </>
   );

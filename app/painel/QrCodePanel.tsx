@@ -2,18 +2,37 @@
 
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
-import { updateQrHeadline } from "./actions";
+import { updateQrBackgroundPath, updateQrBandStyle, updateQrHeadline } from "./actions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { LoadingButton } from "./LoadingButton";
 import { DownloadButton } from "./DownloadButton";
+import { ImageUploadField } from "./ImageUploadField";
+import { cn } from "@/lib/utils";
 
-export default function QrCodePanel({ headline }: { headline: string }) {
+type Props = {
+  businessId: string;
+  headline: string;
+  qrBackgroundPath: string | null;
+  qrBandStyle: "light" | "dark";
+};
+
+export default function QrCodePanel({
+  businessId,
+  headline,
+  qrBackgroundPath,
+  qrBandStyle,
+}: Props) {
   const [headlineDraft, setHeadlineDraft] = useState(headline);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [cacheBust, setCacheBust] = useState(0);
+
+  const [hasBackground, setHasBackground] = useState(!!qrBackgroundPath);
+  const [bandStyle, setBandStyle] = useState(qrBandStyle);
+  const [savingBand, setSavingBand] = useState(false);
 
   async function handleSave(event: FormEvent) {
     event.preventDefault();
@@ -28,6 +47,20 @@ export default function QrCodePanel({ headline }: { headline: string }) {
       toast.error("Não deu pra salvar agora. Tenta de novo.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSelectBand(next: "light" | "dark") {
+    if (next === bandStyle) return;
+    setSavingBand(true);
+    try {
+      await updateQrBandStyle(next);
+      setBandStyle(next);
+      setCacheBust((v) => v + 1);
+    } catch {
+      toast.error("Não deu pra salvar agora. Tenta de novo.");
+    } finally {
+      setSavingBand(false);
     }
   }
 
@@ -53,6 +86,54 @@ export default function QrCodePanel({ headline }: { headline: string }) {
           <DownloadButton href={puroUrl} fallbackFilename="qrcode.png" className="flex-1">
             ⬇ Baixar QR code puro
           </DownloadButton>
+        </div>
+
+        <div className="space-y-3 border-t pt-4">
+          <ImageUploadField
+            businessId={businessId}
+            currentPath={qrBackgroundPath}
+            prefix="qr-fundo"
+            aspect="wide"
+            label="Foto de fundo da plaquinha"
+            helpText="Opcional. O QR code ganha uma faixa sólida atrás pra continuar fácil de escanear."
+            onSave={async (newPath, oldPath) => {
+              await updateQrBackgroundPath(newPath, oldPath);
+              setHasBackground(!!newPath);
+              setCacheBust((v) => v + 1);
+            }}
+          />
+
+          {hasBackground && (
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Faixa atrás do QR code</p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={bandStyle === "light" ? "default" : "outline"}
+                  size="sm"
+                  disabled={savingBand}
+                  onClick={() => handleSelectBand("light")}
+                  className={cn(bandStyle === "light" && "pointer-events-none")}
+                >
+                  Clara
+                </Button>
+                <Button
+                  type="button"
+                  variant={bandStyle === "dark" ? "default" : "outline"}
+                  size="sm"
+                  disabled={savingBand}
+                  onClick={() => handleSelectBand("dark")}
+                  className={cn(bandStyle === "dark" && "pointer-events-none")}
+                >
+                  Escura
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Escolha a que fizer mais contraste com a sua foto — QR code com pouco contraste
+                falha na leitura.
+              </p>
+            </div>
+          )}
         </div>
 
         <details className="group">

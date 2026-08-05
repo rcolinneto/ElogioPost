@@ -15,12 +15,14 @@ type Props = {
   businessName: string;
   reviewUrl: string;
   template: string;
+  instagramHandle: string | null;
 };
 
 export default function RequestReviewPanel({
   businessName,
   reviewUrl,
   template,
+  instagramHandle,
 }: Props) {
   const [clientName, setClientName] = useState("");
   const [message, setMessage] = useState("");
@@ -37,6 +39,7 @@ export default function RequestReviewPanel({
         nome: clientName.trim(),
         negocio: businessName,
         link: reviewUrl,
+        instagram: instagramHandle,
       }),
     );
   }
@@ -113,9 +116,9 @@ export default function RequestReviewPanel({
               rows={5}
             />
             <p className="text-xs text-muted-foreground">
-              Use {"{{nome}}"}, {"{{negocio}}"} e {"{{link}}"} — eles são
-              trocados automaticamente pelo nome do cliente, o nome do seu
-              negócio e o link de coleta.
+              Use {"{{nome}}"}, {"{{negocio}}"}, {"{{link}}"} e {"{{instagram}}"} — eles são
+              trocados automaticamente pelo nome do cliente, o nome do seu negócio, o link de
+              coleta e o @ do seu Instagram (configurado na aba Marca).
             </p>
             <LoadingButton type="submit" loading={saving} loadingText="Salvando...">
               {saved ? "Salvo!" : "Salvar modelo"}

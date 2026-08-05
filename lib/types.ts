@@ -12,6 +12,12 @@ export type Business = {
   qr_headline: string;
   carousel_cta_text: string;
   card_style: string;
+  logo_path: string | null;
+  brand_color: string | null;
+  instagram_handle: string | null;
+  whatsapp_number: string | null;
+  qr_background_path: string | null;
+  qr_band_style: "light" | "dark";
   created_at: string;
   updated_at: string;
 };

@@ -68,3 +68,68 @@ export async function updateCardStyle(styleId: CardStyleId) {
   if (!(styleId in CARD_STYLES)) return;
   await updateOwnBusinessField("card_style", styleId);
 }
+
+// Campos do Brand Kit (logo, cor, @instagram, WhatsApp) e da plaquinha de QR
+// são todos opcionais e precisam poder ser apagados (voltar pra null), então
+// usam esse helper à parte em vez de updateOwnBusinessField, que ignora
+// valor vazio de propósito (os campos que ele cobre nunca fazem sentido em
+// branco).
+async function updateOwnBusinessColumns(values: Record<string, string | null>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Sessão expirada. Recarrega a página e tenta de novo.");
+
+  const { error } = await supabase
+    .from("businesses")
+    .update(values)
+    .eq("owner_id", user.id);
+  if (error) throw new Error("Não deu pra salvar agora. Tenta de novo.");
+
+  revalidatePath("/painel");
+}
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+export async function updateBrandColor(color: string | null) {
+  if (color && !HEX_COLOR.test(color)) {
+    throw new Error("Cor inválida.");
+  }
+  await updateOwnBusinessColumns({ brand_color: color });
+}
+
+export async function updateInstagramHandle(handle: string) {
+  const cleaned = handle.trim().replace(/^@+/, "");
+  await updateOwnBusinessColumns({ instagram_handle: cleaned || null });
+}
+
+export async function updateWhatsappNumber(number: string) {
+  const cleaned = number.trim();
+  await updateOwnBusinessColumns({ whatsapp_number: cleaned || null });
+}
+
+async function updateOwnBusinessAsset(
+  column: "logo_path" | "qr_background_path",
+  newPath: string | null,
+  oldPath: string | null,
+) {
+  await updateOwnBusinessColumns({ [column]: newPath });
+  if (oldPath && oldPath !== newPath) {
+    const supabase = await createClient();
+    await supabase.storage.from("business-assets").remove([oldPath]);
+  }
+}
+
+export async function updateLogoPath(newPath: string | null, oldPath: string | null) {
+  await updateOwnBusinessAsset("logo_path", newPath, oldPath);
+}
+
+export async function updateQrBackgroundPath(newPath: string | null, oldPath: string | null) {
+  await updateOwnBusinessAsset("qr_background_path", newPath, oldPath);
+}
+
+export async function updateQrBandStyle(bandStyle: "light" | "dark") {
+  if (bandStyle !== "light" && bandStyle !== "dark") return;
+  await updateOwnBusinessColumns({ qr_band_style: bandStyle });
+}

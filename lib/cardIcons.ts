@@ -1,21 +1,46 @@
-// Ícones decorativos (aspas, estrelas) de cada estilo, pré-computados como
-// data URIs de SVG — evita depender de suporte a SVG inline no next/og e
-// reaproveita a mesma técnica já usada pro QR code (<img src="data:...">).
+// Ícones decorativos (aspas, estrelas) de cada estilo, gerados sob demanda
+// como data URIs de SVG — evita depender de suporte a SVG inline no next/og
+// e reaproveita a mesma técnica já usada pro QR code (<img src="data:...">).
+// São funções (não mais strings fixas) pra poder receber a cor de marca do
+// negócio quando ela sobrescreve a cor de destaque padrão do estilo — ver
+// applyBrandColor em cardStyles.ts.
 
-export const QUOTE_ELEGANTE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MiIgaGVpZ2h0PSIzOCIgdmlld0JveD0iMCAwIDUyIDM4IiBmaWxsPSJub25lIj48cGF0aCBkPSJNNCAyQzQgMiAxNCA0IDE0IDE2QzE0IDI0IDggMjggMiAyOCIgc3Ryb2tlPSIjYzlhMjI3IiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTI4IDJDMjggMiAzOCA0IDM4IDE2QzM4IDI0IDMyIDI4IDI2IDI4IiBzdHJva2U9IiNjOWEyMjciIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=";
+function toDataUri(svg: string): string {
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+}
 
-export const QUOTE_MODERNO_ICON =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDMwIDI0IiBmaWxsPSIjZmZmZmZmIj48cGF0aCBkPSJNMCAxMEMwIDQuNSA0LjUgMCAxMCAwVjZDNy44IDYgNiA3LjggNiAxMFYxMUgxMFYyNEgwVjEwWiIvPjxwYXRoIGQ9Ik0xNyAxMEMxNyA0LjUgMjEuNSAwIDI3IDBWNkMyNC44IDYgMjMgNy44IDIzIDEwVjExSDI3VjI0SDE3VjEwWiIvPjwvc3ZnPg==";
+export function quoteElegante(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="38" viewBox="0 0 52 38" fill="none"><path d="M4 2C4 2 14 4 14 16C14 24 8 28 2 28" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/><path d="M28 2C28 2 38 4 38 16C38 24 32 28 26 28" stroke="${color}" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  );
+}
 
-export const QUOTE_ACOLHEDOR_ICON =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzNCIgaGVpZ2h0PSIyNiIgdmlld0JveD0iMCAwIDM0IDI2IiBmaWxsPSIjZmZmZmZmIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTgiIHJ4PSI3Ii8+PHJlY3QgeD0iMjAiIHk9IjAiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxOCIgcng9IjciLz48L3N2Zz4=";
+export function quoteModerno(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="24" viewBox="0 0 30 24" fill="${color}"><path d="M0 10C0 4.5 4.5 0 10 0V6C7.8 6 6 7.8 6 10V11H10V24H0V10Z"/><path d="M17 10C17 4.5 21.5 0 27 0V6C24.8 6 23 7.8 23 10V11H27V24H17V10Z"/></svg>`,
+  );
+}
 
-export const STAR_OUTLINE =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOWEyMjciIHN0cm9rZS13aWR0aD0iMS40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMjIsMTIgTDE0LjgzLDkuMTcgTDEyLDIgTDkuMTcsOS4xNyBMMiwxMiBMOS4xNywxNC44MyBMMTIsMjIgTDE0LjgzLDE0LjgzIFoiLz48L3N2Zz4=";
+export function quoteAcolhedor(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="26" viewBox="0 0 34 26" fill="${color}"><rect x="0" y="0" width="14" height="18" rx="7"/><rect x="20" y="0" width="14" height="18" rx="7"/></svg>`,
+  );
+}
 
-export const STAR_SOLID =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZmRlNjhhIj48cGF0aCBkPSJNMTIsMiBMMTQuMzUsOC43NiBMMjEuNTEsOC45MSBMMTUuODAsMTMuMjQgTDE3Ljg4LDIwLjA5IEwxMiwxNiBMNi4xMiwyMC4wOSBMOC4yMCwxMy4yNCBMMi40OSw4LjkxIEw5LjY1LDguNzYgWiIvPjwvc3ZnPg==";
+export function starOutline(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round"><path d="M22,12 L14.83,9.17 L12,2 L9.17,9.17 L2,12 L9.17,14.83 L12,22 L14.83,14.83 Z"/></svg>`,
+  );
+}
 
-export const STAR_ROUND =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZTI4OTVmIj48cGF0aCBkPSJNMTIsMiBMMTQuMzUsOC43NiBMMjEuNTEsOC45MSBMMTUuODAsMTMuMjQgTDE3Ljg4LDIwLjA5IEwxMiwxNiBMNi4xMiwyMC4wOSBMOC4yMCwxMy4yNCBMMi40OSw4LjkxIEw5LjY1LDguNzYgWiIvPjwvc3ZnPg==";
+export function starSolid(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M12,2 L14.35,8.76 L21.51,8.91 L15.80,13.24 L17.88,20.09 L12,16 L6.12,20.09 L8.20,13.24 L2.49,8.91 L9.65,8.76 Z"/></svg>`,
+  );
+}
+
+export function starRound(color: string): string {
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${color}"><path d="M12,2 L14.35,8.76 L21.51,8.91 L15.80,13.24 L17.88,20.09 L12,16 L6.12,20.09 L8.20,13.24 L2.49,8.91 L9.65,8.76 Z"/></svg>`,
+  );
+}
