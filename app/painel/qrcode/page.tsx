@@ -1,5 +1,7 @@
 import { getCurrentBusiness } from "@/lib/business";
+import { isPaidPlan } from "@/lib/plan";
 import { PageHeader } from "../PageHeader";
+import { PlanLock } from "../PlanLock";
 import QrCodePanel from "../QrCodePanel";
 
 export default async function QrCodePage() {
@@ -12,12 +14,16 @@ export default async function QrCodePage() {
         title="QR Code"
         description="Baixe a plaquinha pra deixar no balcão do seu negócio."
       />
-      <QrCodePanel
-        businessId={business.id}
-        headline={business.qr_headline}
-        qrBackgroundPath={business.qr_background_path}
-        qrBandStyle={business.qr_band_style}
-      />
+      {isPaidPlan(business) ? (
+        <QrCodePanel
+          businessId={business.id}
+          headline={business.qr_headline}
+          qrBackgroundPath={business.qr_background_path}
+          qrBandStyle={business.qr_band_style}
+        />
+      ) : (
+        <PlanLock description="A plaquinha de QR code pro balcão do seu negócio é exclusiva de quem assina o plano Pago." />
+      )}
     </>
   );
 }

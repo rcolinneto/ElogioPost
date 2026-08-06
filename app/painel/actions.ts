@@ -5,6 +5,18 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentBusiness } from "@/lib/business";
 import { generateCaption } from "./captionActions";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
+import { hasReachedFreeLimit, isPaidPlan } from "@/lib/plan";
+
+// Estilos de card, QR code, ponte pro Google e marca personalizada são
+// recursos do plano Pago — barrado aqui além de escondido na UI, porque uma
+// Server Action é chamável diretamente, não só pelo botão que a esconde.
+async function requirePaidPlan() {
+  const business = await getCurrentBusiness();
+  if (!business) throw new Error("Sessão expirada. Recarrega a página e tenta de novo.");
+  if (!isPaidPlan(business)) {
+    throw new Error("Esse recurso é exclusivo do plano Pago.");
+  }
+}
 
 async function setStatus(id: string, status: "approved" | "rejected") {
   const supabase = await createClient();
@@ -17,6 +29,22 @@ async function setStatus(id: string, status: "approved" | "rejected") {
 }
 
 export async function approveTestimonial(id: string) {
+  const business = await getCurrentBusiness();
+  if (!business) throw new Error("Sessão expirada. Recarrega a página e tenta de novo.");
+
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("testimonials")
+    .select("*", { count: "exact", head: true })
+    .eq("business_id", business.id)
+    .eq("status", "approved");
+
+  if (hasReachedFreeLimit(business, count ?? 0)) {
+    throw new Error(
+      "Você atingiu o limite de 3 depoimentos aprovados do plano Free. Assine o plano Pago pra aprovar mais.",
+    );
+  }
+
   await setStatus(id, "approved");
   try {
     // legenda é um bônus gerado por IA — se falhar, a aprovação já aconteceu
@@ -58,6 +86,7 @@ export async function updateWhatsappTemplate(template: string) {
 }
 
 export async function updateQrHeadline(headline: string) {
+  await requirePaidPlan();
   await updateOwnBusinessField("qr_headline", headline);
 }
 
@@ -67,6 +96,7 @@ export async function updateCarouselCta(text: string) {
 
 export async function updateCardStyle(styleId: CardStyleId) {
   if (!(styleId in CARD_STYLES)) return;
+  await requirePaidPlan();
   await updateOwnBusinessField("card_style", styleId);
 }
 
@@ -97,21 +127,25 @@ export async function updateBrandColor(color: string | null) {
   if (color && !HEX_COLOR.test(color)) {
     throw new Error("Cor inválida.");
   }
+  await requirePaidPlan();
   await updateOwnBusinessColumns({ brand_color: color });
 }
 
 export async function updateInstagramHandle(handle: string) {
   const cleaned = handle.trim().replace(/^@+/, "");
+  await requirePaidPlan();
   await updateOwnBusinessColumns({ instagram_handle: cleaned || null });
 }
 
 export async function updateWhatsappNumber(number: string) {
   const cleaned = number.trim();
+  await requirePaidPlan();
   await updateOwnBusinessColumns({ whatsapp_number: cleaned || null });
 }
 
 export async function updateGooglePlaceId(placeId: string) {
   const cleaned = placeId.trim();
+  await requirePaidPlan();
   await updateOwnBusinessColumns({ google_place_id: cleaned || null });
 }
 
@@ -128,15 +162,18 @@ async function updateOwnBusinessAsset(
 }
 
 export async function updateLogoPath(newPath: string | null, oldPath: string | null) {
+  await requirePaidPlan();
   await updateOwnBusinessAsset("logo_path", newPath, oldPath);
 }
 
 export async function updateQrBackgroundPath(newPath: string | null, oldPath: string | null) {
+  await requirePaidPlan();
   await updateOwnBusinessAsset("qr_background_path", newPath, oldPath);
 }
 
 export async function updateQrBandStyle(bandStyle: "light" | "dark") {
   if (bandStyle !== "light" && bandStyle !== "dark") return;
+  await requirePaidPlan();
   await updateOwnBusinessColumns({ qr_band_style: bandStyle });
 }
 

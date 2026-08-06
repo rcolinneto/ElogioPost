@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { QrCtaCard } from "@/lib/qrCard";
 import { resolveCardStyle } from "@/lib/cardStyles";
 import { loadCardFonts } from "@/lib/cardFonts";
+import { isPaidPlan } from "@/lib/plan";
 
 const PLAQUINHA_SIZE = 1200;
 const CARROSSEL_SIZE = 1080;
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
   const business = await getCurrentBusiness();
   if (!business) {
     return new NextResponse("Não autorizado.", { status: 401 });
+  }
+  if (!isPaidPlan(business)) {
+    return new NextResponse("QR code é um recurso do plano Pago.", { status: 402 });
   }
 
   const formatoParam = request.nextUrl.searchParams.get("formato");

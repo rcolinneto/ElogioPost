@@ -33,6 +33,7 @@ type Props = {
   businessName: string;
   defaultCardStyle: string;
   googlePlaceId: string | null;
+  isPaid: boolean;
 };
 
 export default function ApprovedLibrary({
@@ -40,6 +41,7 @@ export default function ApprovedLibrary({
   businessName,
   defaultCardStyle,
   googlePlaceId,
+  isPaid,
 }: Props) {
   const [query, setQuery] = useState("");
   const [rating, setRating] = useState(0);
@@ -193,6 +195,7 @@ export default function ApprovedLibrary({
               businessName={businessName}
               defaultCardStyle={defaultCardStyle}
               googlePlaceId={googlePlaceId}
+              isPaid={isPaid}
             />
           ))}
           {hasMore && (

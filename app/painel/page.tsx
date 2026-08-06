@@ -1,11 +1,15 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import { BadgeCheck, Download, FileDown, MessagesSquare, Star } from "lucide-react";
 import { getCurrentBusiness } from "@/lib/business";
 import { createClient } from "@/lib/supabase/server";
 import { getBusinessStats } from "@/lib/stats";
 import { formatCompactNumber } from "@/lib/text";
+import { FREE_APPROVED_LIMIT, PAID_PLAN_PRICE_LABEL, isPaidPlan } from "@/lib/plan";
+import { cn } from "@/lib/utils";
 import type { Testimonial } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "./PageHeader";
 import { StatTile } from "./StatTile";
 import { DownloadButton } from "./DownloadButton";
@@ -46,6 +50,11 @@ export default async function PainelPage() {
   const protocol = host?.startsWith("localhost") ? "http" : "https";
   const collectionUrl = `${protocol}://${host}/${business.slug}/review`;
 
+  const isPaid = isPaidPlan(business);
+  const remaining = Math.max(0, FREE_APPROVED_LIMIT - stats.approvedTestimonials);
+  const atFreeLimit = !isPaid && remaining === 0;
+  const nearFreeLimit = !isPaid && remaining <= 1;
+
   return (
     <>
       <PageHeader
@@ -77,6 +86,35 @@ export default async function PainelPage() {
         />
       </div>
 
+      {!isPaid && (
+        <Card className={cn("mb-6", nearFreeLimit && "border-primary")}>
+          <CardContent className="space-y-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">
+                {stats.approvedTestimonials} de {FREE_APPROVED_LIMIT} depoimentos aprovados no
+                plano Free
+              </p>
+              <Button asChild size="sm" variant={nearFreeLimit ? "default" : "outline"}>
+                <Link href="/painel/assinatura">Assinar</Link>
+              </Button>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{
+                  width: `${Math.min(100, (stats.approvedTestimonials / FREE_APPROVED_LIMIT) * 100)}%`,
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {atFreeLimit
+                ? `Limite atingido. Assine por ${PAID_PLAN_PRICE_LABEL} pra aprovar sem limite e liberar estilos, QR code e a ponte pro Google.`
+                : `Depois do limite, assine por ${PAID_PLAN_PRICE_LABEL} pra aprovar sem limite e liberar estilos, QR code e a ponte pro Google.`}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="mb-6 flex justify-end">
         <DownloadButton
           href="/api/testimonials/export"
@@ -106,6 +144,8 @@ export default async function PainelPage() {
         carouselCtaText={business.carousel_cta_text}
         defaultCardStyle={business.card_style}
         googlePlaceId={business.google_place_id}
+        isPaid={isPaid}
+        atFreeLimit={atFreeLimit}
       />
     </>
   );

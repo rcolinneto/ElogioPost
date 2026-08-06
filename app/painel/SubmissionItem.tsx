@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Star, X } from "lucide-react";
+import Link from "next/link";
+import { Check, Loader2, Lock, Star, X } from "lucide-react";
 import type { Testimonial } from "@/lib/types";
 import { CARD_STYLES, type CardStyleId } from "@/lib/cardStyles";
 import { googleReviewLink } from "@/lib/google";
+import { PAID_PLAN_PRICE_LABEL } from "@/lib/plan";
 import { approveTestimonial, logCardGeneration, rejectTestimonial, updateCardStyle } from "./actions";
 import { generateCaption } from "./captionActions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LoadingButton } from "./LoadingButton";
 import { DownloadButton } from "./DownloadButton";
@@ -22,6 +25,8 @@ type Props = {
   businessName: string;
   defaultCardStyle: string;
   googlePlaceId: string | null;
+  isPaid: boolean;
+  atFreeLimit?: boolean;
 };
 
 function isCardStyleId(value: string): value is CardStyleId {
@@ -48,6 +53,8 @@ export default function SubmissionItem({
   businessName,
   defaultCardStyle,
   googlePlaceId,
+  isPaid,
+  atFreeLimit = false,
 }: Props) {
   const [reviewAction, setReviewAction] = useState<ReviewAction>(null);
 
@@ -66,8 +73,10 @@ export default function SubmissionItem({
     try {
       await approveTestimonial(testimonial.id);
       toast.success("Depoimento aprovado!");
-    } catch {
-      toast.error("Não deu pra aprovar agora. Tenta de novo.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Não deu pra aprovar agora. Tenta de novo.",
+      );
     } finally {
       setReviewAction(null);
     }
@@ -165,27 +174,53 @@ export default function SubmissionItem({
                 alt="Print enviado pelo cliente"
               />
             )}
-            <div className="flex gap-2">
-              <LoadingButton
-                className="flex-1"
-                loading={reviewAction === "approving"}
-                loadingText="Aprovando..."
-                disabled={reviewAction !== null}
-                onClick={handleApprove}
-              >
-                <Check /> Aprovar
-              </LoadingButton>
-              <LoadingButton
-                variant="outline"
-                className="flex-1"
-                loading={reviewAction === "rejecting"}
-                loadingText="Rejeitando..."
-                disabled={reviewAction !== null}
-                onClick={handleReject}
-              >
-                <X /> Rejeitar
-              </LoadingButton>
-            </div>
+            {atFreeLimit ? (
+              <div className="space-y-2 rounded-lg border border-dashed p-3">
+                <p className="text-sm font-medium">Limite do plano Free atingido</p>
+                <p className="text-xs text-muted-foreground">
+                  Você já aprovou 3 depoimentos. Assine o plano Pago pra aprovar este e os
+                  próximos sem limite.
+                </p>
+                <div className="flex gap-2">
+                  <Button asChild size="sm" className="flex-1">
+                    <Link href="/painel/assinatura">Assinar por {PAID_PLAN_PRICE_LABEL}</Link>
+                  </Button>
+                  <LoadingButton
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    loading={reviewAction === "rejecting"}
+                    loadingText="Rejeitando..."
+                    disabled={reviewAction !== null}
+                    onClick={handleReject}
+                  >
+                    <X /> Rejeitar
+                  </LoadingButton>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <LoadingButton
+                  className="flex-1"
+                  loading={reviewAction === "approving"}
+                  loadingText="Aprovando..."
+                  disabled={reviewAction !== null}
+                  onClick={handleApprove}
+                >
+                  <Check /> Aprovar
+                </LoadingButton>
+                <LoadingButton
+                  variant="outline"
+                  className="flex-1"
+                  loading={reviewAction === "rejecting"}
+                  loadingText="Rejeitando..."
+                  disabled={reviewAction !== null}
+                  onClick={handleReject}
+                >
+                  <X /> Rejeitar
+                </LoadingButton>
+              </div>
+            )}
           </>
         )}
 
@@ -200,41 +235,51 @@ export default function SubmissionItem({
               />
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Estilo do card</p>
-              <div className="flex gap-2.5">
-                {Object.values(CARD_STYLES).map((style) => (
-                  <button
-                    key={style.id}
-                    type="button"
-                    onClick={() => handleSelectStyle(style.id)}
-                    disabled={switchingStyle !== null}
-                    className="flex flex-col items-center gap-1.5 disabled:cursor-not-allowed"
-                  >
-                    <div className="relative">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
-                      <img
-                        src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
-                        alt={`Estilo ${style.label}`}
-                        width={64}
-                        height={64}
-                        className={cn(
-                          "size-16 rounded-lg object-cover ring-2 ring-offset-2 ring-offset-background transition-opacity",
-                          selectedStyle === style.id
-                            ? "ring-primary opacity-100"
-                            : "ring-transparent opacity-60",
-                          switchingStyle === style.id && "opacity-40",
+            {isPaid ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Estilo do card</p>
+                <div className="flex gap-2.5">
+                  {Object.values(CARD_STYLES).map((style) => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => handleSelectStyle(style.id)}
+                      disabled={switchingStyle !== null}
+                      className="flex flex-col items-center gap-1.5 disabled:cursor-not-allowed"
+                    >
+                      <div className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- miniatura gerada pela nossa própria rota autenticada */}
+                        <img
+                          src={`/api/testimonials/${testimonial.id}/card?formato=feed&estilo=${style.id}&v=${cacheBust}`}
+                          alt={`Estilo ${style.label}`}
+                          width={64}
+                          height={64}
+                          className={cn(
+                            "size-16 rounded-lg object-cover ring-2 ring-offset-2 ring-offset-background transition-opacity",
+                            selectedStyle === style.id
+                              ? "ring-primary opacity-100"
+                              : "ring-transparent opacity-60",
+                            switchingStyle === style.id && "opacity-40",
+                          )}
+                        />
+                        {switchingStyle === style.id && (
+                          <Loader2 className="absolute inset-0 m-auto size-5 animate-spin text-primary" />
                         )}
-                      />
-                      {switchingStyle === style.id && (
-                        <Loader2 className="absolute inset-0 m-auto size-5 animate-spin text-primary" />
-                      )}
-                    </div>
-                    <span className="text-[11px] text-muted-foreground">{style.label}</span>
-                  </button>
-                ))}
+                      </div>
+                      <span className="text-[11px] text-muted-foreground">{style.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Lock className="size-3.5" />
+                <Link href="/painel/assinatura" className="underline underline-offset-2">
+                  Assine o plano Pago
+                </Link>
+                &nbsp;pra escolher entre outros estilos de card.
+              </p>
+            )}
 
             <div className="flex gap-2">
               <DownloadButton
@@ -329,7 +374,7 @@ export default function SubmissionItem({
               )}
             </div>
 
-            {googlePlaceId && testimonial.rating >= 4 && (
+            {isPaid && googlePlaceId && testimonial.rating >= 4 && (
               <div className="space-y-2 border-t pt-3">
                 <Label>Pedir essa avaliação no Google também</Label>
                 <p className="text-xs text-muted-foreground">

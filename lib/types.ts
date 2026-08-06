@@ -1,13 +1,18 @@
 export type TestimonialStatus = "pending" | "approved" | "rejected";
 
+export type BusinessPlan = "free" | "paid";
+export type SubscriptionStatus = "inactive" | "active" | "overdue" | "canceled";
+
 export type Business = {
   id: string;
   owner_id: string;
   name: string;
   slug: string;
-  plan: string;
-  subscription_status: string;
-  trial_ends_at: string;
+  plan: BusinessPlan;
+  subscription_status: SubscriptionStatus;
+  asaas_customer_id: string | null;
+  asaas_subscription_id: string | null;
+  billing_document: string | null;
   whatsapp_template: string;
   qr_headline: string;
   carousel_cta_text: string;

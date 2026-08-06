@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolveCardStyle, applyBrandColor } from "@/lib/cardStyles";
 import { loadCardFonts } from "@/lib/cardFonts";
 import { renderTestimonialCard, CARD_SIZES, type CardFormat } from "@/lib/cardRender";
+import { isPaidPlan } from "@/lib/plan";
 
 function parseFormat(value: string | null): CardFormat {
   if (value === "stories" || value === "google") return value;
@@ -44,7 +45,11 @@ export async function GET(
     backgroundUrl = data?.signedUrl ?? null;
   }
 
-  const styleParam = request.nextUrl.searchParams.get("estilo");
+  // Escolher estilo é recurso do plano Pago — no Free ignora o parâmetro da
+  // URL (que dá pra manipular direto) e sempre usa o estilo padrão salvo.
+  const styleParam = isPaidPlan(business)
+    ? request.nextUrl.searchParams.get("estilo")
+    : null;
   const baseStyle = resolveCardStyle(styleParam ?? business.card_style);
   const style = applyBrandColor(baseStyle, business.brand_color);
   const fonts = await loadCardFonts();
